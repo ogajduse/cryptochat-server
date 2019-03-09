@@ -15,12 +15,12 @@ Transation for creation of schema of FlureeDB database
 },{
     "_id": "_predicate",
     "name": "users/publicKeyEnc",
-    "type": "bytes",
+    "type": "string",
     "unique": true
 },{
     "_id": "_predicate",
     "name": "users/publicKeySig",
-    "type": "bytes",
+    "type": "string",
     "unique": true
 },
 
@@ -41,7 +41,7 @@ Transation for creation of schema of FlureeDB database
 },{
     "_id": "_predicate",
     "name": "users/encryptedKeys",
-    "type": "bytes",
+    "type": "string",
     "multi": true
 },
 
@@ -61,7 +61,7 @@ Transation for creation of schema of FlureeDB database
 },{
     "_id": "_predicate",
     "name": "messages/message",
-    "type": "bytes"
+    "type": "string"
 },{
     "_id": "_predicate",
     "name": "messages/timestamp",
@@ -84,5 +84,5 @@ Transation for creation of schema of FlureeDB database
 },{
     "_id": "_predicate",
     "name": "contacts/alias",
-    "type": "bytes"
+    "type": "string"
 }]
