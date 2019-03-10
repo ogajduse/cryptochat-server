@@ -40,7 +40,7 @@ Transation for creation of schema of FlureeDB database:
     "multi": true
 },{
     "_id": "_predicate",
-    "name": "users/encryptedKeys",
+    "name": "chats/encryptedKeys",
     "type": "string",
     "multi": true
 },
@@ -48,6 +48,11 @@ Transation for creation of schema of FlureeDB database:
 {
  "_id": "_collection",
  "name": "messages"
+},{
+    "_id": "_predicate",
+    "name": "messages/id",
+    "type": "long",
+    "unique": true
 },{
     "_id": "_predicate",
     "name": "messages/chatId",
@@ -90,28 +95,30 @@ Transation for creation of schema of FlureeDB database:
 Add user to database:
 
 [{
-  "_id":  "users",
-  "id":   1234567,
-  "publicKeySig": "123123123121",
-  "publicKeyEnc": "123123123123"
+  "_id":  "users$1234567123",
+  "id":   1234567123,
+  "publicKeySig": "12312312312112333",
+  "publicKeyEnc": "123123123123123333"
 }]
 
-Add chat to database:
+Add chat to database with users:
 
 [{
-  "_id": "chat",
-  "id":   1234567,
-  "publicKeySig": "123123123121",
-  "publicKeyEnc": "123123123123"
+  "_id": "chats$123",
+  "id":   123,
+  "usersInConversation": [351843720888321],
+  "encryptedKeys": ["1asdassdsads"]
 }]
 
 Add message to chat in database:
 
 [{
-  "_id": "chat",
-  "id":   1234567,
-  "publicKeySig": "123123123121",
-  "publicKeyEnc": "123123123123"
+  "_id": "message",
+  "id": 1234
+  "chatId":   1234567,
+  "sender": 351843720888321,
+  "message": "123123123123"
+  "timestamp": #(now)
 }]
 
 Add contact into users:
