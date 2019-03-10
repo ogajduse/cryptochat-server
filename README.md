@@ -2,7 +2,7 @@
 
 Server side for Cryptochat.
 
-Transation for creation of schema of FlureeDB database
+Transation for creation of schema of FlureeDB database:
 
 [{
  "_id": "_collection",
@@ -85,4 +85,40 @@ Transation for creation of schema of FlureeDB database
     "_id": "_predicate",
     "name": "contacts/alias",
     "type": "string"
+}]
+
+Add user to database:
+
+[{
+  "_id":  "users",
+  "id":   1234567,
+  "publicKeySig": "123123123121",
+  "publicKeyEnc": "123123123123"
+}]
+
+Add chat to database:
+
+[{
+  "_id": "chat",
+  "id":   1234567,
+  "publicKeySig": "123123123121",
+  "publicKeyEnc": "123123123123"
+}]
+
+Add message to chat in database:
+
+[{
+  "_id": "chat",
+  "id":   1234567,
+  "publicKeySig": "123123123121",
+  "publicKeyEnc": "123123123123"
+}]
+
+Add contact into users:
+
+[{
+  "_id":      "contacts",
+  "id":   1234567,
+  "publicKeySig": "123123123121",
+  "publicKeyEnc": "123123123123"
 }]
