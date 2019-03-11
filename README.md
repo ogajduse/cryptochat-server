@@ -125,7 +125,7 @@ Add contact into users:
 
 [{
   "_id":      "contacts",
-  "id":   1234567,
-  "publicKeySig": "123123123121",
-  "publicKeyEnc": "123123123123"
+  "owner":   351843720888321,
+  "user": 351843720888321,
+  "alias": "Ondra"
 }]
