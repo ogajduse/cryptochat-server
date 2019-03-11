@@ -114,11 +114,11 @@ Add message to chat in database:
 
 [{
   "_id": "message",
-  "id": 1234
+  "id": 1234,
   "chatId":   1234567,
   "sender": 351843720888321,
-  "message": "123123123123"
-  "timestamp": #(now)
+  "message": "123123123123",
+  "timestamp": "#(now)"
 }]
 
 Add contact into users:
