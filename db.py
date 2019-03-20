@@ -96,12 +96,14 @@ class DB:
                 result['alias'] = newAlias
             db.write_back(results)
 
-
-database = DB()
-loop = asyncio.new_event_loop()
-print(loop.run_until_complete(database.insertContact(123456, 1234567, "Sranda" )))
-print(loop.run_until_complete(database.selectMyContacts(123456)))
-print(loop.run_until_complete(database.alterMyContact(123456,1234567, "Prdel")))
-print(loop.run_until_complete(database.selectMyContacts(123456)))
-loop.close()
+if __name__ == "__main__":
+    database = DB()
+    loop = asyncio.new_event_loop()
+    print(loop.run_until_complete(database.insertUser(123, "pkenc", "pksig")))
+    print(loop.run_until_complete(database.insertUser(123456, 1234567, "Sranda")))
+    print(loop.run_until_complete(database.insertContact(123456, 1234567, "Sranda")))
+    print(loop.run_until_complete(database.selectMyContacts(123456)))
+    print(loop.run_until_complete(database.alterMyContact(123456,1234567, "Prdel")))
+    print(loop.run_until_complete(database.selectMyContacts(123456)))
+    loop.close()
 
