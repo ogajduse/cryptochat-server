@@ -11,6 +11,11 @@ import hashlib
 #3: messages
 #4: contacts
 
+DB_TYPE_USERS = 1
+DB_TYPE_CHATS = 2
+DB_TYPE_MESSAGES = 3
+DB_TYPE_CONTACTS =4
+
 #returning 0 from method means everything is ok
 #returning 1 means something is wrong :D 
 
