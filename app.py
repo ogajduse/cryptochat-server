@@ -191,8 +191,8 @@ def main():
     cryptochat_app.listen(options.port)
     LOGGER.info("Starting (version %s).", SERVER_VERSION)
 
-    BaseHandler.messages_new_api = MessagesNewAPI(global_message_buffer)
-    BaseHandler.messages_updates_api = MessagesUpdatesAPI(global_message_buffer)
+    BaseHandler.messages_new_api = MessagesNewAPI(db)
+    BaseHandler.messages_updates_api = MessagesUpdatesAPI(db)
     BaseHandler.users_new_api = UsersNewAPI(db)
 
     tornado.ioloop.IOLoop.current().start()

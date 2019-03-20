@@ -11,8 +11,8 @@ from jsonschema import validate
 class MessagesNewAPI:
     """ Main /packages API class."""
 
-    def __init__(self, cache):
-        self.cache = cache
+    def __init__(self, db):
+        self.db = db
         self.json_schema = {
             "message": "message"
         }
@@ -36,7 +36,7 @@ class MessagesNewAPI:
             'message': message
         }
 
-        self.cache.add_message(response)
+        #self.cache.add_message(response)
 
         return response
 
@@ -44,8 +44,8 @@ class MessagesNewAPI:
 class MessagesUpdatesAPI:
     """ Main /packages API class."""
 
-    def __init__(self, cache):
-        self.cache = cache
+    def __init__(self, db):
+        self.db = db
         self.json_schema = {
             "cursor": "uuid"
         }
