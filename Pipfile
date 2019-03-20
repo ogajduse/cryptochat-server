@@ -6,6 +6,9 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
+rsa = "*"
+aiotinydb = "*"
+tinydb = "*"
 
 [requires]
 python_version = "3.7"
