@@ -30,6 +30,7 @@ def inputValidator(self, publicKey, sign, jsonData):
     else:
         return 1
 
+
 class DB:
 
     def __init__(self):
@@ -66,7 +67,7 @@ class DB:
             return db.search((where('type') == 2) & ((where('users').any([myID])) | (where('owner') == myID)) )
 
     async def insertMessage(self, chatID, senderID, timestamp, message):
-        async with AIOTinyDB(dbString) as db:
+        async with AIOTinyDB(self.dbString) as db:
             db.insert({'type': 3, 'chatID': chatID, 'senderID': senderID, 'timestamp': time.time(), 'message': message})
 
     async def selectMyMessages(self, chatID):
