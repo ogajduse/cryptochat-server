@@ -32,11 +32,10 @@ def inputValidator(self, publicKey, sign, jsonData):
 
 class DB:
 
-    dbString = "db.json"
-    query = Query()
-    
-    def DB(self):
-        print("Database created");
+    def __init__(self):
+        self.dbString = "db.json"
+        self.query = Query()
+        print("Database created")
 
     async def insertUser(self, userID, publicKeyEnc, publicKeySig):
         async with AIOTinyDB(self.dbString) as db:
