@@ -9,6 +9,8 @@ verify_ssl = true
 rsa = "*"
 aiotinydb = "*"
 tinydb = "*"
+tornado = "*"
+jsonschema = "*"
 
 [requires]
 python_version = "3.7"
