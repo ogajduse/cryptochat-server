@@ -14,6 +14,8 @@ from tornado.options import define, options
 from logging_utils import get_logger
 from messages import MessagesNewAPI
 from messages import MessagesUpdatesAPI
+from users import UsersNewAPI
+from db import DB
 
 LOGGER = get_logger(__name__)
 SERVER_VERSION = os.environ.get('VERSION')
@@ -54,6 +56,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
     messages_new_api = None
     messages_updates_api = None
+    users_new_api = None
 
     def data_received(self, chunk):
         pass
@@ -169,6 +172,10 @@ class MessageUpdatesHandler(BaseHandler):
     def on_connection_close(self):
         self.wait_future.cancel()
 
+class UsersNewHandler(BaseHandler):
+    async def post(self):
+        await self.handle_post(self.users_new_api, 1)
+
 
 def main():
     cryptochat_app = tornado.web.Application(
@@ -176,6 +183,7 @@ def main():
             (r"/", MainHandler),
             (r"/api/message/new", MessageNewHandler),
             (r"/api/message/updates", MessageUpdatesHandler),
+            (r"/api/users/insert", UsersNewHandler),
         ],
         debug=options.debug,
         serve_traceback=False,
@@ -185,6 +193,7 @@ def main():
 
     BaseHandler.messages_new_api = MessagesNewAPI(global_message_buffer)
     BaseHandler.messages_updates_api = MessagesUpdatesAPI(global_message_buffer)
+    BaseHandler.users_new_api = UsersNewAPI(db)
 
     tornado.ioloop.IOLoop.current().start()
 
@@ -192,4 +201,5 @@ def main():
 if __name__ == "__main__":
     # Making this a non-singleton is left as an exercise for the reader.
     global_message_buffer = MessageBuffer()
+    db = DB()
     main()
