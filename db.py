@@ -42,7 +42,8 @@ class DB:
             if(True != db.contains((where('type') == 1) & (where('id') == userID))):
                 db.insert({'type': 1, 'id': userID, 'publicKeyEnc': publicKeyEnc, 'publicKeySig': publicKeySig})
             else:
-                return "Error appeared when inserting new user"
+                return 1
+            return 0
 
     async def selectUser(self, userID):
         async with AIOTinyDB(self.dbString) as db:
