@@ -12,11 +12,13 @@ class OneLineExceptionFormatter(logging.Formatter):
     (insures one entry-per-log for some logging environments that divide on newline)
     """
 
-    def formatException(self, exc_info):
+    def formatException(self, ei):
         """
         Make sure exception-tracebacks end up on a single line.
         """
-        result = super(OneLineExceptionFormatter, self).formatException(exc_info)
+        result = super(
+            OneLineExceptionFormatter,
+            self).formatException(ei)
         return repr(result)
 
     def format(self, record):

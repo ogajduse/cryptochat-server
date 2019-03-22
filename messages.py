@@ -11,8 +11,8 @@ from jsonschema import validate
 class MessagesNewAPI:
     """ Main /packages API class."""
 
-    def __init__(self, db):
-        self.db = db
+    def __init__(self, my_db):
+        self.my_db = my_db
         self.json_schema = {
             "message": "message"
         }
@@ -36,7 +36,7 @@ class MessagesNewAPI:
             'message': message
         }
 
-        #self.cache.add_message(response)
+        # self.cache.add_message(response)
 
         return response
 
@@ -44,11 +44,12 @@ class MessagesNewAPI:
 class MessagesUpdatesAPI:
     """ Main /packages API class."""
 
-    def __init__(self, db):
-        self.db = db
+    def __init__(self, my_db):
+        self.my_db = my_db
         self.json_schema = {
             "cursor": "uuid"
         }
+        self.wait_future = None
 
     async def process_list(self, api_version, data):  # pylint: disable=unused-argument
         """
@@ -74,7 +75,7 @@ class MessagesUpdatesAPI:
             messages = self.cache.get_messages_since(cursor)
 
         response = {
-            'message': None
+            'messages': messages
         }
 
-        return dict(messages=messages)
+        return response
