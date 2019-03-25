@@ -61,7 +61,7 @@ class DB:
         :return: 0 if the user was added, else 1
         """
         async with AIOTinyDB(self.db_string) as my_db:
-            if not my_db.contains((where('type')) == DB_TYPE_USERS & (where('id') == user_id)):
+            if not my_db.contains((where('type') == DB_TYPE_USERS) & (where('id') == user_id)):
                 my_db.insert({'type': 1,
                               'id': user_id,
                               'public_key_enc': public_key_enc,
