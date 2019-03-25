@@ -72,7 +72,7 @@ class DB:
         """
         async with AIOTinyDB(self.db_string) as my_db:
             if not my_db.contains((where('type') == DBType.USERS) & (where('id') == user_id)):
-                my_db.insert({'type': 1,
+                my_db.insert({'type': DBType.USERS,
                               'id': user_id,
                               'public_key_enc': public_key_enc,
                               'public_key_sig': public_key_sig})
@@ -102,7 +102,7 @@ class DB:
         async with AIOTinyDB(self.db_string) as my_db:
             if not my_db.contains((where('type') == DBType.CHATS) &
                                   ((where('id') == chat_id) | (where('users').all(users)))):
-                my_db.insert({'type': 2, 'id': chat_id, 'owner': owner,
+                my_db.insert({'type': DBType.CHATS, 'id': chat_id, 'owner': owner,
                               'users': users, 'users_public_key': users_public_keys})
                 return 0
             return 1
@@ -136,7 +136,7 @@ class DB:
         :return: TODO
         """
         async with AIOTinyDB(self.db_string) as my_db:
-            my_db.insert({'type': 3,
+            my_db.insert({'type': DBType.MESSAGES,
                           'chat_id': chat_id,
                           'sender_id': sender_id,
                           'timestamp': time.time(),
@@ -164,7 +164,7 @@ class DB:
                     (where('type') == DBType.CONTACTS) & (where('owner_id') == owner_id) &
                     (where('user_id') == user_id))):
                 return 1
-            my_db.insert({'type': 4, 'owner_id': owner_id,
+            my_db.insert({'type': DBType.CONTACTS, 'owner_id': owner_id,
                           'user_id': user_id, 'alias': encrypted_alias})
             return 0
 
