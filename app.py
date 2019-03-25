@@ -16,7 +16,7 @@ import tornado.locks
 import tornado.web
 from jsonschema.exceptions import ValidationError
 
-from db import DB
+from db import DB, DatabaseError
 from logging_utils import get_logger, init_logging
 from messages import MessagesNewAPI
 from messages import MessagesUpdatesAPI
@@ -112,6 +112,8 @@ class BaseHandler(tornado.web.RequestHandler):
             except ValueError as valuerr:
                 res = str(valuerr)
                 LOGGER.error('ValueError: %s', res)
+            except DatabaseError:
+                raise
             except Exception as err:  # pylint: disable=broad-except
                 err_id = err.__hash__()
                 res = 'Internal server error <%s>:' \

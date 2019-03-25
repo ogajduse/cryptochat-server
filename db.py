@@ -83,9 +83,9 @@ class DB:
                               'public_key_enc': public_key_enc,
                               'public_key_sig': public_key_sig})
             else:
-                raise DatabaseError(
-                    'Can not insert user into the database. '
-                    'User with ID "{}" already exist.'.format(user_id))
+                raise DatabaseError(reason=
+                                    'Can not insert user into the database. '
+                                    'User with ID "{}" already exist.'.format(user_id))
             return
 
     async def select_user(self, user_id):
@@ -112,9 +112,9 @@ class DB:
                 my_db.insert({'type': DBType.CHATS.value, 'id': chat_id, 'owner': owner,
                               'users': users, 'users_public_key': users_public_keys})
                 return
-            raise DatabaseError(
-                'Can not insert chat into the database. '
-                'Chat with ID "{}" already exist.'.format(chat_id))
+            raise DatabaseError(reason=
+                                'Can not insert chat into the database. '
+                                'Chat with ID "{}" already exist.'.format(chat_id))
 
     async def select_chat(self, chat_id):
         """
@@ -173,7 +173,8 @@ class DB:
             if (my_db.contains(
                     (where('type') == DBType.CONTACTS.value) & (where('owner_id') == owner_id) &
                     (where('user_id') == user_id))):
-                raise DatabaseError('Can not insert contact into the database. User with ID '
+                raise DatabaseError(reason=
+                                    'Can not insert contact into the database. User with ID '
                                     '{} already exist in the cotacts for the user with ID {}.'
                                     .format(user_id, owner_id))
             my_db.insert({'type': DBType.CONTACTS.value, 'owner_id': owner_id,
