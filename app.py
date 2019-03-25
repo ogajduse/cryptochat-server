@@ -22,6 +22,7 @@ from users import UsersNewAPI
 LOGGER = get_logger(__name__)
 SERVER_VERSION = os.getenv('VERSION', 'unknown')
 PUBLIC_API_PORT = 8888
+DATABASE_LOCATION = os.getenv('DATABASE_LOCATION', '/tmp/cryptochat_db.json')
 
 
 class MessageBuffer():
@@ -198,7 +199,7 @@ class UsersNewHandler(BaseHandler):
 def main():
     """ The main function. It creates cryptochat application, run everything."""
     init_logging()
-    cryptochat_db = DB('/tmp/cryptochat_db.json')
+    cryptochat_db = DB(DATABASE_LOCATION)
 
     cryptochat_app = tornado.web.Application(
         [
