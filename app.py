@@ -12,7 +12,6 @@ import tornado.ioloop
 import tornado.locks
 import tornado.web
 from jsonschema.exceptions import ValidationError
-from tornado.options import define, options
 
 from db import DB
 from logging_utils import get_logger, init_logging
@@ -21,10 +20,8 @@ from messages import MessagesUpdatesAPI
 from users import UsersNewAPI
 
 LOGGER = get_logger(__name__)
-SERVER_VERSION = os.environ.get('VERSION')
-
-define("port", default=8888, help="run on the given port", type=int)
-define("debug", default=True, help="run in debug mode")
+SERVER_VERSION = os.getenv('VERSION', 'unknown')
+PUBLIC_API_PORT = 8888
 
 
 class MessageBuffer():
@@ -210,11 +207,11 @@ def main():
             (r"/api/message/updates", MessageUpdatesHandler),
             (r"/api/users/insert", UsersNewHandler),
         ],
-        debug=options.debug,
+        debug=True,
         serve_traceback=False,
     )
-    cryptochat_app.listen(options.port)
-    LOGGER.info("Starting (version %s).", SERVER_VERSION)
+    cryptochat_app.listen(PUBLIC_API_PORT)
+    LOGGER.info("Starting cryptochat (version %s).", SERVER_VERSION)
 
     BaseHandler.messages_new_api = MessagesNewAPI(cryptochat_db)
     BaseHandler.messages_updates_api = MessagesUpdatesAPI(cryptochat_db)
