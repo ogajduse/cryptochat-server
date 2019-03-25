@@ -15,7 +15,7 @@ from jsonschema.exceptions import ValidationError
 from tornado.options import define, options
 
 from db import DB
-from logging_utils import get_logger
+from logging_utils import get_logger, init_logging
 from messages import MessagesNewAPI
 from messages import MessagesUpdatesAPI
 from users import UsersNewAPI
@@ -200,6 +200,7 @@ class UsersNewHandler(BaseHandler):
 
 def main():
     """ The main function. It creates cryptochat application, run everything."""
+    init_logging()
     cryptochat_app = tornado.web.Application(
         [
             (r"/", MainHandler),
