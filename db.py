@@ -10,6 +10,8 @@ import rsa
 from aiotinydb import AIOTinyDB
 from tinydb import Query, where
 
+from database_error import DatabaseError
+
 # TYPES
 # 1: users
 # 2: chats
@@ -67,8 +69,9 @@ class DB:
                               'public_key_enc': public_key_enc,
                               'public_key_sig': public_key_sig})
             else:
-                return 1
-            return 0
+                raise DatabaseError(
+                    'Can not insert user into the database. User with ID "{}" already exist.'.format(user_id))
+            return
 
     async def select_user(self, user_id):
         """

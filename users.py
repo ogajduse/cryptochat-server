@@ -38,11 +38,12 @@ class UsersNewAPI:
 
         # message_id = str(uuid.uuid4())
 
-        response = await self.my_db.insert_user(user_id, public_key_enc, public_key_sig)
+        await self.my_db.insert_user(user_id, public_key_enc, public_key_sig)
 
-        # response = {
-        #     'message_id': message_id,
-        #     'message': message
-        # }
+        response = {
+            'user_id': user_id,
+            'public_key_enc': public_key_enc,
+            'public_key_sig': public_key_sig
+        }
 
         return response
