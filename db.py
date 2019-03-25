@@ -78,8 +78,8 @@ class DB:
         :return: 0 if the user was added, else 1
         """
         async with AIOTinyDB(self.db_string) as my_db:
-            if not my_db.contains((where('type') == DBType.USERS) & (where('id') == user_id)):
-                my_db.insert({'type': DBType.USERS,
+            if not my_db.contains((where('type') == DBType.USERS.value) & (where('id') == user_id)):
+                my_db.insert({'type': DBType.USERS.value,
                               'id': user_id,
                               'public_key_enc': public_key_enc,
                               'public_key_sig': public_key_sig})
@@ -95,7 +95,7 @@ class DB:
         :return: user
         """
         async with AIOTinyDB(self.db_string) as my_db:
-            return my_db.search((where('type') == DBType.USERS) & (where('id') == user_id))
+            return my_db.search((where('type') == DBType.USERS.value) & (where('id') == user_id))
 
     async def insert_chat(self, chat_id, owner, users, users_public_keys):
         """
@@ -107,9 +107,9 @@ class DB:
         :return: 0 if the chat was inserted into the database, else 1
         """
         async with AIOTinyDB(self.db_string) as my_db:
-            if not my_db.contains((where('type') == DBType.CHATS) &
+            if not my_db.contains((where('type') == DBType.CHATS.value) &
                                   ((where('id') == chat_id) | (where('users').all(users)))):
-                my_db.insert({'type': DBType.CHATS, 'id': chat_id, 'owner': owner,
+                my_db.insert({'type': DBType.CHATS.value, 'id': chat_id, 'owner': owner,
                               'users': users, 'users_public_key': users_public_keys})
                 return 0
             return 1
@@ -121,7 +121,7 @@ class DB:
         :return: Chat that was searched for
         """
         async with AIOTinyDB(self.db_string) as my_db:
-            return my_db.search((where('type') == DBType.CHATS) & (where('id') == chat_id))
+            return my_db.search((where('type') == DBType.CHATS.value) & (where('id') == chat_id))
 
     async def select_my_chats(self, my_id):
         """
@@ -131,8 +131,8 @@ class DB:
         """
         async with AIOTinyDB(self.db_string) as my_db:
             return my_db.search(
-                (where('type') == DBType.CHATS) & ((where('users').any([my_id])) |
-                                                   (where('owner') == my_id)))
+                (where('type') == DBType.CHATS.value) & ((where('users').any([my_id])) |
+                                                         (where('owner') == my_id)))
 
     async def insert_message(self, chat_id, sender_id, message):
         """
@@ -143,7 +143,7 @@ class DB:
         :return: TODO
         """
         async with AIOTinyDB(self.db_string) as my_db:
-            my_db.insert({'type': DBType.MESSAGES,
+            my_db.insert({'type': DBType.MESSAGES.value,
                           'chat_id': chat_id,
                           'sender_id': sender_id,
                           'timestamp': time.time(),
@@ -156,7 +156,8 @@ class DB:
         :return: TODO
         """
         async with AIOTinyDB(self.db_string) as my_db:
-            return my_db.search((where('type') == DBType.MESSAGES) & (where('chat_id') == chat_id))
+            return my_db.search((where('type') == DBType.MESSAGES.value) &
+                                (where('chat_id') == chat_id))
 
     async def insert_contact(self, owner_id, user_id, encrypted_alias):
         """
@@ -168,10 +169,10 @@ class DB:
         """
         async with AIOTinyDB(self.db_string) as my_db:
             if (my_db.contains(
-                    (where('type') == DBType.CONTACTS) & (where('owner_id') == owner_id) &
+                    (where('type') == DBType.CONTACTS.value) & (where('owner_id') == owner_id) &
                     (where('user_id') == user_id))):
                 return 1
-            my_db.insert({'type': DBType.CONTACTS, 'owner_id': owner_id,
+            my_db.insert({'type': DBType.CONTACTS.value, 'owner_id': owner_id,
                           'user_id': user_id, 'alias': encrypted_alias})
             return 0
 
@@ -183,14 +184,14 @@ class DB:
         """
         async with AIOTinyDB(self.db_string) as my_db:
             return my_db.search(
-                (where('type') == DBType.CONTACTS) &
+                (where('type') == DBType.CONTACTS.value) &
                 (where('owner_id') == owner_id))
 
     async def delete_my_contact(self, owner_id, user_id):
         "Delete contact of the selected user."
         async with AIOTinyDB(self.db_string) as my_db:
             return my_db.remove(
-                (where('type') == DBType.CONTACTS) & (where('owner_id') == owner_id) &
+                (where('type') == DBType.CONTACTS.value) & (where('owner_id') == owner_id) &
                 (where('user_id') == user_id))
 
     async def alter_my_contact(self, owner_id, user_id, new_alias):
@@ -203,7 +204,7 @@ class DB:
         """
         async with AIOTinyDB(self.db_string) as my_db:
             results = my_db.search(
-                (where('type') == DBType.CONTACTS) &
+                (where('type') == DBType.CONTACTS.value) &
                 (where('owner_id') == owner_id) &
                 (where('user_id') == user_id))
             for result in results:
