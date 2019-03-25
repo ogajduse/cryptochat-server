@@ -218,25 +218,26 @@ class DB:
 if __name__ == "__main__":
     DATABASE = DB()
     LOOP = asyncio.new_event_loop()
-    print(LOOP.run_until_complete(DATABASE.insert_user(123, "pkenc", "pksig")))
-    print(
-        LOOP.run_until_complete(
-            DATABASE.insert_user(
-                123456,
-                1234567,
-                "Sranda")))
-    print(
-        LOOP.run_until_complete(
-            DATABASE.insert_contact(
-                123456,
-                1234567,
-                "Sranda")))
+
+    LOOP.run_until_complete(DATABASE.insert_user(123, "pkenc", "pksig"))
+    try:
+        LOOP.run_until_complete(DATABASE.insert_user(123, "pkenc", "pksig"))
+    except DatabaseError:
+        print('Duplicate user won\'t be added.')
+
+    LOOP.run_until_complete(DATABASE.insert_user(123456, 1234567, "Sranda"))
+
+    LOOP.run_until_complete(DATABASE.insert_contact(123456, 1234567, "Sranda"))
+    try:
+        LOOP.run_until_complete(DATABASE.insert_contact(123456, 1234567, "Sranda"))
+    except DatabaseError:
+        print('Duplicate contact won\'t be added')
+
     print(LOOP.run_until_complete(DATABASE.select_my_contacts(123456)))
-    print(
-        LOOP.run_until_complete(
-            DATABASE.alter_my_contact(
-                123456,
-                1234567,
-                "Prdel")))
-    print(LOOP.run_until_complete(DATABASE.select_my_contacts(123456)))
+
+    ALTERED_FIELD = 'Prdel'
+    LOOP.run_until_complete(DATABASE.alter_my_contact(123456, 1234567, ALTERED_FIELD))
+
+    RESULT = LOOP.run_until_complete(DATABASE.select_my_contacts(123456))
+    assert RESULT[0].pop('alias') == ALTERED_FIELD
     LOOP.close()
