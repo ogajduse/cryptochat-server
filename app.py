@@ -201,6 +201,8 @@ class UsersNewHandler(BaseHandler):
 def main():
     """ The main function. It creates cryptochat application, run everything."""
     init_logging()
+    cryptochat_db = DB('/tmp/cryptochat_db.json')
+
     cryptochat_app = tornado.web.Application(
         [
             (r"/", MainHandler),
@@ -214,9 +216,9 @@ def main():
     cryptochat_app.listen(options.port)
     LOGGER.info("Starting (version %s).", SERVER_VERSION)
 
-    BaseHandler.messages_new_api = MessagesNewAPI(MY_DB)
-    BaseHandler.messages_updates_api = MessagesUpdatesAPI(MY_DB)
-    BaseHandler.users_new_api = UsersNewAPI(MY_DB)
+    BaseHandler.messages_new_api = MessagesNewAPI(cryptochat_db)
+    BaseHandler.messages_updates_api = MessagesUpdatesAPI(cryptochat_db)
+    BaseHandler.users_new_api = UsersNewAPI(cryptochat_db)
 
     tornado.ioloop.IOLoop.current().start()
 
@@ -224,5 +226,4 @@ def main():
 if __name__ == "__main__":
     # Making this a non-singleton is left as an exercise for the reader.
     GLOBAL_MESSAGE_BUFFER = MessageBuffer()
-    MY_DB = DB()
     main()
