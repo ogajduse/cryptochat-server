@@ -5,9 +5,12 @@ Main chat API module
 
 import json
 import os
+import signal
 import traceback
 
 import tornado.escape
+import tornado.gen
+import tornado.httpserver
 import tornado.ioloop
 import tornado.locks
 import tornado.web
@@ -23,6 +26,7 @@ LOGGER = get_logger(__name__)
 SERVER_VERSION = os.getenv('VERSION', 'unknown')
 PUBLIC_API_PORT = 8888
 DATABASE_LOCATION = os.getenv('DATABASE_LOCATION', '/tmp/cryptochat_db.json')
+_SHUTDOWN_TIMEOUT = 3
 
 
 class MessageBuffer():
@@ -157,6 +161,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
 class MainHandler(BaseHandler):
     """Handler for the API root."""
+
     def get(self):
         """Returns the root endpoint of the API."""
         self.write(
@@ -191,27 +196,53 @@ class MessageUpdatesHandler(BaseHandler):
 
 class UsersNewHandler(BaseHandler):
     """Handler class providing /users POST requests."""
+
     async def post(self):
         """Adds a new user to the database."""
         await self.handle_post(self.users_new_api, 1)
 
 
-def main():
-    """ The main function. It creates cryptochat application, run everything."""
-    init_logging()
-    cryptochat_db = DB(DATABASE_LOCATION)
+class Application(tornado.web.Application):
+    """ main cryptochat application class """
 
-    cryptochat_app = tornado.web.Application(
-        [
+    def __init__(self):
+        handlers = [
             (r"/", MainHandler),
             (r"/api/message/new", MessageNewHandler),
             (r"/api/message/updates", MessageUpdatesHandler),
             (r"/api/users/insert", UsersNewHandler),
-        ],
-        debug=True,
-        serve_traceback=False,
-    )
-    cryptochat_app.listen(PUBLIC_API_PORT)
+        ]
+
+        tornado.web.Application.__init__(self, handlers, debug=True, serve_traceback=False)
+
+
+def main():
+    """ The main function. It creates cryptochat application, run everything."""
+
+    async def shutdown():
+        server.stop()
+        await tornado.gen.sleep(_SHUTDOWN_TIMEOUT)
+        tornado.ioloop.IOLoop.current().stop()
+        LOGGER.info("Server was successfully shut down.")
+
+    def exit_handler(sig, frame):  # pylint: disable=unused-argument
+        def get_sig_name(sig):
+            return dict((k, v) for v, k in reversed(sorted(signal.__dict__.items()))
+                        if v.startswith('SIG') and not v.startswith('SIG_')).pop(sig)
+
+        LOGGER.warning("Registered %s, shutting down.", get_sig_name(sig))
+        tornado.ioloop.IOLoop.instance().add_callback_from_signal(shutdown)
+
+    signal.signal(signal.SIGTERM, exit_handler)
+    signal.signal(signal.SIGINT, exit_handler)
+
+    init_logging()
+    cryptochat_db = DB(DATABASE_LOCATION)
+
+    cryptochat_app = Application()
+    server = tornado.httpserver.HTTPServer(cryptochat_app)
+    server.bind(PUBLIC_API_PORT)
+    server.start()
     LOGGER.info("Starting cryptochat (version %s).", SERVER_VERSION)
 
     BaseHandler.messages_new_api = MessagesNewAPI(cryptochat_db)
