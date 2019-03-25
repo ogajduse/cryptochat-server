@@ -112,8 +112,13 @@ class BaseHandler(tornado.web.RequestHandler):
             except ValueError as valuerr:
                 res = str(valuerr)
                 LOGGER.error('ValueError: %s', res)
-            except DatabaseError:
-                raise
+            except DatabaseError as dberr:
+                err_id = dberr.__hash__()
+                res = str(dberr.reason)
+                print(res)
+                LOGGER.error(res)
+                LOGGER.info("Input data for <%s>: %s", err_id, data)
+                raise dberr
             except Exception as err:  # pylint: disable=broad-except
                 err_id = err.__hash__()
                 res = 'Internal server error <%s>:' \
