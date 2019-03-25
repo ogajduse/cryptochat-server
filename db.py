@@ -11,6 +11,7 @@ from aiotinydb import AIOTinyDB
 from tinydb import Query, where
 
 from database_error import DatabaseError
+from logging_utils import get_logger
 
 # TYPES
 # 1: users
@@ -23,6 +24,7 @@ DB_TYPE_CHATS = 2
 DB_TYPE_MESSAGES = 3
 DB_TYPE_CONTACTS = 4
 
+LOGGER = get_logger(__name__)
 
 # returning 0 from method means everything is ok
 # returning 1 means something is wrong :D
@@ -52,7 +54,7 @@ class DB:
     def __init__(self, db_string='/tmp/cryptochat-db.json'):
         self.db_string = db_string
         self.query = Query()
-        print("Database created")
+        LOGGER.info('Using database located at %s', db_string)
 
     async def insert_user(self, user_id, public_key_enc, public_key_sig):
         """
