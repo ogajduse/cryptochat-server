@@ -23,10 +23,9 @@ from logging_utils import get_logger
 
 LOGGER = get_logger(__name__)
 
-# returning 0 from method means everything is ok
-# returning 1 means something is wrong :D
 
 # all selects return strings
+
 
 def input_validator(public_key, sign, json_data):
     """
@@ -85,7 +84,8 @@ class DB:
                               'public_key_sig': public_key_sig})
             else:
                 raise DatabaseError(
-                    'Can not insert user into the database. User with ID "{}" already exist.'.format(user_id))
+                    'Can not insert user into the database. '
+                    'User with ID "{}" already exist.'.format(user_id))
             return
 
     async def select_user(self, user_id):
@@ -111,8 +111,10 @@ class DB:
                                   ((where('id') == chat_id) | (where('users').all(users)))):
                 my_db.insert({'type': DBType.CHATS.value, 'id': chat_id, 'owner': owner,
                               'users': users, 'users_public_key': users_public_keys})
-                return 0
-            return 1
+                return
+            raise DatabaseError(
+                'Can not insert chat into the database. '
+                'Chat with ID "{}" already exist.'.format(chat_id))
 
     async def select_chat(self, chat_id):
         """
@@ -171,10 +173,11 @@ class DB:
             if (my_db.contains(
                     (where('type') == DBType.CONTACTS.value) & (where('owner_id') == owner_id) &
                     (where('user_id') == user_id))):
-                return 1
+                raise DatabaseError('Can not insert contact into the database. User with ID '
+                                    '{} already exist in the cotacts for the user with ID {}.'
+                                    .format(user_id, owner_id))
             my_db.insert({'type': DBType.CONTACTS.value, 'owner_id': owner_id,
                           'user_id': user_id, 'alias': encrypted_alias})
-            return 0
 
     async def select_my_contacts(self, owner_id):
         """
