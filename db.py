@@ -46,8 +46,9 @@ class DB:
     """
     Database class for handling the database queries
     """
-    def __init__(self):
-        self.db_string = "my_db.json"
+
+    def __init__(self, db_string='/tmp/cryptochat-db.json'):
+        self.db_string = db_string
         self.query = Query()
         print("Database created")
 
