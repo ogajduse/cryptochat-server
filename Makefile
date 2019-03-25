@@ -1,4 +1,7 @@
-.PHONY: test install install-dev
+.PHONY: test install install-dev clear-db
+
+clear-db:
+	$(RM) .data/db.json
 
 install:
 	pipenv install

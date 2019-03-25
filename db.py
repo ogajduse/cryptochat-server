@@ -4,6 +4,7 @@ Module to handle database calls.
 
 import asyncio
 import hashlib
+import os
 import time
 from enum import Enum
 
@@ -42,6 +43,12 @@ def input_validator(public_key, sign, json_data):
     return 1
 
 
+def _get_default_db_path():
+    project_root = os.path.dirname(os.path.abspath(__file__))
+    full_path = project_root + '/.data/db.json'
+    return full_path
+
+
 class DBType(Enum):
     """
     Enum for database record types.
@@ -57,7 +64,7 @@ class DB:
     Database class for handling the database queries
     """
 
-    def __init__(self, db_string='/tmp/cryptochat-db.json'):
+    def __init__(self, db_string=_get_default_db_path()):
         self.db_string = db_string
         self.query = Query()
         LOGGER.info('Using database located at %s', db_string)
