@@ -2,7 +2,6 @@
 Module to handle /messages API calls.
 """
 
-import asyncio
 import uuid
 
 from jsonschema import validate
@@ -63,19 +62,19 @@ class MessagesUpdatesAPI:
         if cursor is None:
             raise ValueError('"cursor" attribute is missing')
 
-        messages = self.cache.get_messages_since(cursor)
-        while not messages:
-            # Save the Future returned here so we can cancel it in
-            # on_connection_close.
-            self.wait_future = self.cache.cond.wait()
-            try:
-                await self.wait_future
-            except asyncio.CancelledError:
-                return
-            messages = self.cache.get_messages_since(cursor)
+        # messages = self.cache.get_messages_since(cursor)
+        # while not messages:
+        #     # Save the Future returned here so we can cancel it in
+        #     # on_connection_close.
+        #     self.wait_future = self.cache.cond.wait()
+        #     try:
+        #         await self.wait_future
+        #     except asyncio.CancelledError:
+        #         return
+        #     messages = self.cache.get_messages_since(cursor)
 
         response = {
-            'messages': messages
+            'messages': None
         }
 
         return response
