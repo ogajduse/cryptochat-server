@@ -2,7 +2,6 @@
 Module to handle /messages API calls.
 """
 
-import asyncio
 import uuid
 
 from jsonschema import validate
@@ -11,8 +10,8 @@ from jsonschema import validate
 class MessagesNewAPI:
     """ Main /packages API class."""
 
-    def __init__(self, cache):
-        self.cache = cache
+    def __init__(self, my_db):
+        self.my_db = my_db
         self.json_schema = {
             "message": "message"
         }
@@ -36,7 +35,7 @@ class MessagesNewAPI:
             'message': message
         }
 
-        self.cache.add_message(response)
+        # self.cache.add_message(response)
 
         return response
 
@@ -44,11 +43,12 @@ class MessagesNewAPI:
 class MessagesUpdatesAPI:
     """ Main /packages API class."""
 
-    def __init__(self, cache):
-        self.cache = cache
+    def __init__(self, my_db):
+        self.my_db = my_db
         self.json_schema = {
             "cursor": "uuid"
         }
+        self.wait_future = None
 
     async def process_list(self, api_version, data):  # pylint: disable=unused-argument
         """
@@ -62,19 +62,19 @@ class MessagesUpdatesAPI:
         if cursor is None:
             raise ValueError('"cursor" attribute is missing')
 
-        messages = self.cache.get_messages_since(cursor)
-        while not messages:
-            # Save the Future returned here so we can cancel it in
-            # on_connection_close.
-            self.wait_future = self.cache.cond.wait()
-            try:
-                await self.wait_future
-            except asyncio.CancelledError:
-                return
-            messages = self.cache.get_messages_since(cursor)
+        # messages = self.cache.get_messages_since(cursor)
+        # while not messages:
+        #     # Save the Future returned here so we can cancel it in
+        #     # on_connection_close.
+        #     self.wait_future = self.cache.cond.wait()
+        #     try:
+        #         await self.wait_future
+        #     except asyncio.CancelledError:
+        #         return
+        #     messages = self.cache.get_messages_since(cursor)
 
         response = {
-            'message': None
+            'messages': None
         }
 
-        return dict(messages=messages)
+        return response

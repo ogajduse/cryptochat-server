@@ -1,28 +1,37 @@
 #!/usr/bin/env python3
+"""
+Main chat API module
+"""
 
 import json
 import os
+import signal
 import traceback
 
 import tornado.escape
+import tornado.gen
+import tornado.httpserver
 import tornado.ioloop
 import tornado.locks
 import tornado.web
 from jsonschema.exceptions import ValidationError
-from tornado.options import define, options
 
-from logging_utils import get_logger
+from db import DB, DatabaseError
+from logging_utils import get_logger, init_logging
 from messages import MessagesNewAPI
 from messages import MessagesUpdatesAPI
+from users import UsersNewAPI
 
 LOGGER = get_logger(__name__)
-SERVER_VERSION = os.environ.get('VERSION')
+SERVER_VERSION = os.getenv('VERSION', 'unknown')
+PUBLIC_API_PORT = 8888
+DATABASE_LOCATION = os.getenv('DATABASE_LOCATION', '/tmp/cryptochat_db.json')
+_SHUTDOWN_TIMEOUT = 3
 
-define("port", default=8888, help="run on the given port", type=int)
-define("debug", default=True, help="run in debug mode")
 
+class MessageBuffer():
+    """Deprecated function that servers as a message buffer. It should be replaced by DB module."""
 
-class MessageBuffer(object):
     def __init__(self):
         # cond is notified whenever the message cache is updated
         self.cond = tornado.locks.Condition()
@@ -43,6 +52,7 @@ class MessageBuffer(object):
         return results
 
     def add_message(self, message):
+        """Adds message to the buffer."""
         self.cache.append(message)
         if len(self.cache) > self.cache_size:
             self.cache = self.cache[-self.cache_size:]
@@ -54,6 +64,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
     messages_new_api = None
     messages_updates_api = None
+    users_new_api = None
 
     def data_received(self, chunk):
         pass
@@ -72,7 +83,8 @@ class BaseHandler(tornado.web.RequestHandler):
 
         # check if JSON is passed as a file or as a body of POST request
         if self.request.files:
-            json_data = self.request.files['file'][0]['body']  # pick up only first file (index 0)
+            json_data = self.request.files['file'][0][
+                'body']  # pick up only first file (index 0)
         elif self.request.body:
             json_data = self.request.body
 
@@ -92,16 +104,25 @@ class BaseHandler(tornado.web.RequestHandler):
                 code = 200
             except ValidationError as validerr:
                 if validerr.absolute_path:
-                    res = '%s : %s' % (validerr.absolute_path.pop(), validerr.message)
+                    res = '%s : %s' % (
+                        validerr.absolute_path.pop(), validerr.message)
                 else:
                     res = '%s' % validerr.message
                 LOGGER.error('ValidationError: %s', res)
             except ValueError as valuerr:
                 res = str(valuerr)
                 LOGGER.error('ValueError: %s', res)
+            except DatabaseError as dberr:
+                err_id = dberr.__hash__()
+                res = str(dberr.reason)
+                print(res)
+                LOGGER.error(res)
+                LOGGER.info("Input data for <%s>: %s", err_id, data)
+                raise dberr
             except Exception as err:  # pylint: disable=broad-except
                 err_id = err.__hash__()
-                res = 'Internal server error <%s>: please include this error id in bug report.' % err_id
+                res = 'Internal server error <%s>:' \
+                      'please include this error id in bug report.' % err_id
                 code = 500
                 LOGGER.exception(res)
                 LOGGER.info("Input data for <%s>: %s", err_id, data)
@@ -146,14 +167,22 @@ class BaseHandler(tornado.web.RequestHandler):
 
 
 class MainHandler(BaseHandler):
+    """Handler for the API root."""
+
     def get(self):
-        self.write('{"error": "cryptochat-server main page, please refer to /api/message/new or /api/message/updates"}')
+        """Returns the root endpoint of the API."""
+        self.write(
+            '{"error": "cryptochat-server main page, '
+            'please refer to /api/message/new or /api/message/updates"}')
 
 
 class MessageNewHandler(BaseHandler):
     """Post a new message to the chat room."""
 
     async def post(self):
+        """
+        Add a new message to the server.
+        """
         await self.handle_post(self.messages_new_api, 1)
 
 
@@ -164,32 +193,73 @@ class MessageUpdatesHandler(BaseHandler):
     """
 
     async def post(self):
+        """Checks for the new message updates, waits until
+        new messages are available."""
         await self.handle_post(self.messages_updates_api, 1)
 
-    def on_connection_close(self):
-        self.wait_future.cancel()
+    # def on_connection_close(self):
+    #     self.wait_future.cancel()
 
 
-def main():
-    cryptochat_app = tornado.web.Application(
-        [
+class UsersNewHandler(BaseHandler):
+    """Handler class providing /users POST requests."""
+
+    async def post(self):
+        """Adds a new user to the database."""
+        await self.handle_post(self.users_new_api, 1)
+
+
+class Application(tornado.web.Application):
+    """ main cryptochat application class """
+
+    def __init__(self):
+        handlers = [
             (r"/", MainHandler),
             (r"/api/message/new", MessageNewHandler),
             (r"/api/message/updates", MessageUpdatesHandler),
-        ],
-        debug=options.debug,
-        serve_traceback=False,
-    )
-    cryptochat_app.listen(options.port)
-    LOGGER.info("Starting (version %s).", SERVER_VERSION)
+            (r"/api/users/insert", UsersNewHandler),
+        ]
 
-    BaseHandler.messages_new_api = MessagesNewAPI(global_message_buffer)
-    BaseHandler.messages_updates_api = MessagesUpdatesAPI(global_message_buffer)
+        tornado.web.Application.__init__(self, handlers, debug=True, serve_traceback=False)
+
+
+def main():
+    """ The main function. It creates cryptochat application, run everything."""
+
+    async def shutdown():
+        server.stop()
+        await tornado.gen.sleep(_SHUTDOWN_TIMEOUT)
+        tornado.ioloop.IOLoop.current().stop()
+        LOGGER.info("Server was successfully shut down.")
+
+    def exit_handler(sig, frame):  # pylint: disable=unused-argument
+        def get_sig_name(sig):
+            return dict((k, v) for v, k in reversed(sorted(signal.__dict__.items()))
+                        if v.startswith('SIG') and not v.startswith('SIG_')).pop(sig)
+
+        LOGGER.warning("Registered %s, shutting down.", get_sig_name(sig))
+        tornado.ioloop.IOLoop.instance().add_callback_from_signal(shutdown)
+
+    signal.signal(signal.SIGTERM, exit_handler)
+    signal.signal(signal.SIGINT, exit_handler)
+
+    init_logging()
+    cryptochat_db = DB(DATABASE_LOCATION)
+
+    cryptochat_app = Application()
+    server = tornado.httpserver.HTTPServer(cryptochat_app)
+    server.bind(PUBLIC_API_PORT)
+    server.start()
+    LOGGER.info("Starting cryptochat (version %s).", SERVER_VERSION)
+
+    BaseHandler.messages_new_api = MessagesNewAPI(cryptochat_db)
+    BaseHandler.messages_updates_api = MessagesUpdatesAPI(cryptochat_db)
+    BaseHandler.users_new_api = UsersNewAPI(cryptochat_db)
 
     tornado.ioloop.IOLoop.current().start()
 
 
 if __name__ == "__main__":
     # Making this a non-singleton is left as an exercise for the reader.
-    global_message_buffer = MessageBuffer()
+    GLOBAL_MESSAGE_BUFFER = MessageBuffer()
     main()
