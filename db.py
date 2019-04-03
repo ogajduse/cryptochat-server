@@ -68,7 +68,7 @@ class DB:
         self.query = Query()
         LOGGER.info('Using database located at %s', db_string)
 
-    async def insert_user(self, user_id, public_key_enc, public_key_sig):
+    async def insert_user(self, user_id, public_key):
         """
         Insert a new user to database.
         :param user_id: Users ID
@@ -79,8 +79,7 @@ class DB:
             if not my_db.contains((where('type') == DBType.USERS.value) & (where('id') == user_id)):
                 my_db.insert({'type': DBType.USERS.value,
                               'id': user_id,
-                              'public_key_enc': public_key_enc,
-                              'public_key_sig': public_key_sig})
+                              'public_key': public_key})
             else:
                 raise DatabaseError(reason=
                                     'Can not insert user into the database. '
@@ -96,7 +95,7 @@ class DB:
         async with AIOTinyDB(self.db_string) as my_db:
             return my_db.search((where('type') == DBType.USERS.value) & (where('id') == user_id))
 
-    async def insert_chat(self, chat_id, owner, users, users_public_keys):
+    async def insert_chat(self, chat_id, users, users_public_keys):
         """
         Inserts the new entry to the particular chat.
         :param chat_id: ID of Chat
@@ -108,8 +107,10 @@ class DB:
         async with AIOTinyDB(self.db_string) as my_db:
             if not my_db.contains((where('type') == DBType.CHATS.value) &
                                   ((where('id') == chat_id) | (where('users').all(users)))):
-                my_db.insert({'type': DBType.CHATS.value, 'id': chat_id, 'owner': owner,
-                              'users': users, 'users_public_key': users_public_keys})
+                my_db.insert({'type': DBType.CHATS.value,
+                              'id': chat_id,
+                              'users': users,
+                              'users_public_key': users_public_keys})
                 return
             raise DatabaseError(reason=
                                 'Can not insert chat into the database. '
