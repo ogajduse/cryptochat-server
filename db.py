@@ -220,25 +220,49 @@ if __name__ == "__main__":
     DATABASE = DB()
     LOOP = asyncio.new_event_loop()
 
-    LOOP.run_until_complete(DATABASE.insert_user(123, "pkenc", "pksig"))
+    USER1 = {'user_id': 123, 'pkenc': 'pkenc_data', 'pksig': 'pksig_data'}
+    USER2 = {'user_id': 123456, 'pkenc': 'pkenc_data2', 'pksig': 'pksig_data2'}
+    CONTACT1 = {'owner_id': USER1.get('user_id'),
+                'user_id': USER2.get('user_id'),
+                'encrypted_alias': 'USER2 in contacts of USER1'}
+    CONTACT2 = {'owner_id': USER2.get('user_id'),
+                'user_id': USER1.get('user_id'),
+                'encrypted_alias': 'USER1 in contacts of USER2'}
+
+    LOOP.run_until_complete(DATABASE.insert_user(USER1.get('user_id'),
+                                                 USER1.get('pkenc'), USER1.get('pksig')))
     try:
-        LOOP.run_until_complete(DATABASE.insert_user(123, "pkenc", "pksig"))
+        LOOP.run_until_complete(DATABASE.insert_user(USER1.get('user_id'),
+                                                     USER1.get('pkenc'), USER1.get('pksig')))
     except DatabaseError:
         print('Duplicate user won\'t be added.')
 
-    LOOP.run_until_complete(DATABASE.insert_user(123456, 1234567, "Sranda"))
+    LOOP.run_until_complete(DATABASE.insert_user(USER2.get('user_id'),
+                                                 USER2.get('pkenc'), USER2.get('pksig')))
 
-    LOOP.run_until_complete(DATABASE.insert_contact(123456, 1234567, "Sranda"))
+    GET_USER2 = LOOP.run_until_complete(DATABASE.select_user(USER2.get('user_id')))[0]
+    print(GET_USER2)
+
+    LOOP.run_until_complete(DATABASE.insert_contact(CONTACT1.get('owner_id'),
+                                                    CONTACT1.get('user_id'),
+                                                    CONTACT1.get('encrypted_alias')))
+    LOOP.run_until_complete(DATABASE.insert_contact(CONTACT2.get('owner_id'),
+                                                    CONTACT2.get('user_id'),
+                                                    CONTACT2.get('encrypted_alias')))
     try:
-        LOOP.run_until_complete(DATABASE.insert_contact(123456, 1234567, "Sranda"))
+        LOOP.run_until_complete(DATABASE.insert_contact(CONTACT1.get('owner_id'),
+                                                        CONTACT1.get('user_id'),
+                                                        CONTACT1.get('encrypted_alias')))
     except DatabaseError:
         print('Duplicate contact won\'t be added')
 
-    print(LOOP.run_until_complete(DATABASE.select_my_contacts(123456)))
+    print(LOOP.run_until_complete(DATABASE.select_my_contacts(USER2.get('user_id'))))
 
-    ALTERED_FIELD = 'Prdel'
-    LOOP.run_until_complete(DATABASE.alter_my_contact(123456, 1234567, ALTERED_FIELD))
+    ALTERED_FIELD = 'changed_encrypted_alias'
+    LOOP.run_until_complete(DATABASE.alter_my_contact(CONTACT2.get('owner_id'),
+                                                      CONTACT2.get('user_id'),
+                                                      ALTERED_FIELD))
 
-    RESULT = LOOP.run_until_complete(DATABASE.select_my_contacts(123456))
+    RESULT = LOOP.run_until_complete(DATABASE.select_my_contacts(USER2.get('user_id')))
     assert RESULT[0].pop('alias') == ALTERED_FIELD
     LOOP.close()
