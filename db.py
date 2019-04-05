@@ -228,6 +228,23 @@ if __name__ == "__main__":
     CONTACT2 = {'owner_id': USER2.get('user_id'),
                 'user_id': USER1.get('user_id'),
                 'encrypted_alias': 'USER1 in contacts of USER2'}
+    CHAT1 = {'chat_id': 987,
+             'owner': USER1.get('user_id'),
+             'users': [USER1.get('user_id'), USER2.get('user_id')],
+             'users_public_key': [USER1.get('pkenc'), USER2.get('pkenc')]}
+    MESSAGES = [{'chat_id': CHAT1.get('chat_id'),
+                 'sender_id': CHAT1.get('users')[0],
+                 'message': "Hi there!"},
+                {'chat_id': CHAT1.get('chat_id'),
+                 'sender_id': CHAT1.get('users')[1],
+                 'message': 'Oh hi! I have some news for you!'},
+                {'chat_id': CHAT1.get('chat_id'),
+                 'sender_id': CHAT1.get('users')[0],
+                 'message': 'I am curious, tell me...'},
+                {'chat_id': CHAT1.get('chat_id'),
+                 'sender_id': CHAT1.get('users')[1],
+                 'message': 'We are not real... :-('}
+                ]
 
     LOOP.run_until_complete(DATABASE.insert_user(USER1.get('user_id'),
                                                  USER1.get('pkenc'), USER1.get('pksig')))
@@ -242,6 +259,10 @@ if __name__ == "__main__":
 
     GET_USER2 = LOOP.run_until_complete(DATABASE.select_user(USER2.get('user_id')))[0]
     print(GET_USER2)
+    ASSERTION = GET_USER2.get('id') == USER2.get('user_id') and \
+                GET_USER2.get('public_key_enc') == USER2.get('pkenc') and \
+                GET_USER2.get('public_key_sig') == USER2.get('pksig')
+    assert ASSERTION
 
     LOOP.run_until_complete(DATABASE.insert_contact(CONTACT1.get('owner_id'),
                                                     CONTACT1.get('user_id'),
@@ -256,13 +277,54 @@ if __name__ == "__main__":
     except DatabaseError:
         print('Duplicate contact won\'t be added')
 
-    print(LOOP.run_until_complete(DATABASE.select_my_contacts(USER2.get('user_id'))))
+    RESULT = LOOP.run_until_complete(DATABASE.select_my_contacts(USER2.get('user_id')))
+    print(RESULT[0])
 
-    ALTERED_FIELD = 'changed_encrypted_alias'
+    ALTERED_FIELD = CONTACT2.get('encrypted_alias') + '_changed'
     LOOP.run_until_complete(DATABASE.alter_my_contact(CONTACT2.get('owner_id'),
                                                       CONTACT2.get('user_id'),
                                                       ALTERED_FIELD))
 
     RESULT = LOOP.run_until_complete(DATABASE.select_my_contacts(USER2.get('user_id')))
     assert RESULT[0].pop('alias') == ALTERED_FIELD
+
+    LOOP.run_until_complete(DATABASE.delete_my_contact(CONTACT1.get('owner_id'),
+                                                       CONTACT1.get('user_id')))
+
+    LOOP.run_until_complete(DATABASE.insert_chat(CHAT1.get('chat_id'),
+                                                 CHAT1.get('owner'),
+                                                 CHAT1.get('users'),
+                                                 CHAT1.get('users_public_key')))
+
+    try:
+        LOOP.run_until_complete(DATABASE.insert_chat(CHAT1.get('chat_id'),
+                                                     CHAT1.get('owner'),
+                                                     CHAT1.get('users'),
+                                                     CHAT1.get('users_public_key')))
+    except DatabaseError:
+        print('Duplicate chat won\'t be added')
+
+    GET_CHAT1 = LOOP.run_until_complete(DATABASE.select_chat(CHAT1.get('chat_id')))[0]
+    ASSERTION = GET_CHAT1.get('id') == CHAT1.get('chat_id') and \
+                GET_CHAT1.get('owner') == CHAT1.get('owner') and \
+                GET_CHAT1.get('users') == CHAT1.get('users') and \
+                GET_CHAT1.get('users_public_key') == CHAT1.get('users_public_key')
+    assert ASSERTION
+
+    GET_USER_CHATS = LOOP.run_until_complete(DATABASE.select_my_chats(CHAT1.get('owner')))
+    assert GET_USER_CHATS[0] == GET_CHAT1
+
+    for it_message in MESSAGES:
+        LOOP.run_until_complete(DATABASE.insert_message(it_message.get('chat_id'),
+                                                        it_message.get('sender_id'),
+                                                        it_message.get('message')))
+
+    RESULT = LOOP.run_until_complete(DATABASE.select_my_messages(CHAT1.get('chat_id')))
+    RESULT.sort(key=lambda x: x.get('timestamp'))
+
+    for idx, it_message in enumerate(RESULT):
+        assert it_message.get('chat_id') == MESSAGES[idx].get('chat_id')
+        assert it_message.get('sender_id') == MESSAGES[idx].get('sender_id')
+        assert it_message.get('message') == MESSAGES[idx].get('message')
+
     LOOP.close()
