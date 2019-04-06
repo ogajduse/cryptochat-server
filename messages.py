@@ -2,8 +2,6 @@
 Module to handle /messages API calls.
 """
 
-import uuid
-
 from jsonschema import validate
 
 
@@ -13,10 +11,12 @@ class MessagesNewAPI:
     def __init__(self, my_db):
         self.my_db = my_db
         self.json_schema = {
-            "message": "message"
+            'chat_id': 'chat_id',
+            'sender_id': 'sender_id',
+            'message': 'message',
         }
 
-    async def process_list(self, api_version, data):  # pylint: disable=unused-argument
+    async def process_post(self, api_version, data):  # pylint: disable=unused-argument
         """
         Returns package details.
         :param data: json request parsed into data structure
@@ -24,18 +24,17 @@ class MessagesNewAPI:
         """
         validate(data, self.json_schema)
 
-        message = data.get("message")
-        if message is None:
-            raise ValueError('"message" attribute is missing')
+        message = data.get('message')
+        chat_id = data.get('chat_id')
+        sender_id = data.get('sender_id')
 
-        message_id = str(uuid.uuid4())
+        await self.my_db.insert_message(chat_id, sender_id, message)
 
         response = {
-            'message_id': message_id,
+            'chat_id': chat_id,
+            'sender_id': sender_id,
             'message': message
         }
-
-        # self.cache.add_message(response)
 
         return response
 
@@ -50,7 +49,7 @@ class MessagesUpdatesAPI:
         }
         self.wait_future = None
 
-    async def process_list(self, api_version, data):  # pylint: disable=unused-argument
+    async def process_post(self, api_version, data):  # pylint: disable=unused-argument
         """
         Returns package details.
         :param data: json request parsed into data structure
