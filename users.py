@@ -16,7 +16,7 @@ class UsersNewAPI:
             "public_key_sig": "public_key_sig",
         }
 
-    async def process_list(self, api_version, data):  # pylint: disable=unused-argument
+    async def process_post(self, api_version, data):  # pylint: disable=unused-argument
         """
         Returns package details.
         :param data: json request parsed into data structure
