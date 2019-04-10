@@ -71,9 +71,8 @@ class DB:
     async def insert_user(self, user_id, public_key_enc, public_key_sig):
         """
         Insert a new user to database.
-        :param user_id:
-        :param public_key_enc:
-        :param public_key_sig:
+        :param user_id: Users ID
+        :param public_key: Public key of user
         :return: 0 if the user was added, else 1
         """
         async with AIOTinyDB(self.db_string) as my_db:
@@ -91,7 +90,7 @@ class DB:
     async def select_user(self, user_id):
         """
         Return the user that was searched.
-        :param user_id:
+        :param user_id: Users ID
         :return: user
         """
         async with AIOTinyDB(self.db_string) as my_db:
@@ -100,10 +99,10 @@ class DB:
     async def insert_chat(self, chat_id, owner, users, users_public_keys):
         """
         Inserts the new entry to the particular chat.
-        :param chat_id:
-        :param owner:
-        :param users:
-        :param users_public_keys:
+        :param chat_id: ID of Chat 
+        :param owner: Owner ID 
+        :param users: IDs of users in chat
+        :param users_public_keys: encrypted symetric keys using public keys of user
         :return: 0 if the chat was inserted into the database, else 1
         """
         async with AIOTinyDB(self.db_string) as my_db:
@@ -119,8 +118,8 @@ class DB:
     async def select_chat(self, chat_id):
         """
         Return the chat ID that was searched for.
-        :param chat_id:
-        :return: Chat that was searched for
+        :param chat_id: ID of chat
+        :return: Chat that was searched for user's id
         """
         async with AIOTinyDB(self.db_string) as my_db:
             return my_db.search((where('type') == DBType.CHATS.value) & (where('id') == chat_id))
@@ -128,8 +127,8 @@ class DB:
     async def select_my_chats(self, my_id):
         """
         Return the chats for the particular user.
-        :param my_id:
-        :return: Chats for the particular user
+        :param my_id: User ID
+        :return: Chats ID for the particular user
         """
         async with AIOTinyDB(self.db_string) as my_db:
             return my_db.search(
@@ -139,10 +138,10 @@ class DB:
     async def insert_message(self, chat_id, sender_id, message):
         """
         Insert a message into the chat.
-        :param chat_id:
-        :param sender_id:
-        :param message:
-        :return: TODO
+        :param chat_id: Chat of ID 
+        :param sender_id: ID of user that sends message
+        :param message: Message content (encrypted)
+        :return: Returns nothing
         """
         async with AIOTinyDB(self.db_string) as my_db:
             my_db.insert({'type': DBType.MESSAGES.value,
@@ -154,8 +153,8 @@ class DB:
     async def select_my_messages(self, chat_id):
         """
         TODO
-        :param chat_id:
-        :return: TODO
+        :param chat_id: ID of chat
+        :return: Returns json of all messages in chat
         """
         async with AIOTinyDB(self.db_string) as my_db:
             return my_db.search((where('type') == DBType.MESSAGES.value) &
@@ -164,9 +163,9 @@ class DB:
     async def insert_contact(self, owner_id, user_id, encrypted_alias):
         """
         Inserts a contact into the database.
-        :param owner_id:
-        :param user_id:
-        :param encrypted_alias:
+        :param owner_id: ID of user
+        :param user_id: ID of contact. 
+        :param encrypted_alias: Encrypted alias of contact
         :return: 0 if the user was successfully inserted, else 1
         """
         async with AIOTinyDB(self.db_string) as my_db:
@@ -183,8 +182,8 @@ class DB:
     async def select_my_contacts(self, owner_id):
         """
         TODO
-        :param owner_id:
-        :return: TODO
+        :param owner_id: User ID which wants his contacts.
+        :return: Returns user's contacts in json.
         """
         async with AIOTinyDB(self.db_string) as my_db:
             return my_db.search(
@@ -201,10 +200,10 @@ class DB:
     async def alter_my_contact(self, owner_id, user_id, new_alias):
         """
         Alters the contact for the specified user.
-        :param owner_id:
-        :param user_id:
-        :param new_alias:
-        :return: TODO
+        :param owner_id: User ID which has this contact
+        :param user_id: ID of user which is in contact
+        :param new_alias: New alias for user in contact
+        :return: Nothing
         """
         async with AIOTinyDB(self.db_string) as my_db:
             results = my_db.search(
