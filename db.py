@@ -98,8 +98,8 @@ class DB:
     async def insert_chat(self, chat_id, users, users_public_keys):
         """
         Inserts the new entry to the particular chat.
-        :param chat_id: ID of Chat 
-        :param owner: Owner ID 
+        :param chat_id: ID of Chat
+        :param owner: Owner ID
         :param users: IDs of users in chat
         :param users_public_keys: encrypted symetric keys using public keys of user
         :return: 0 if the chat was inserted into the database, else 1
@@ -139,7 +139,7 @@ class DB:
     async def insert_message(self, chat_id, sender_id, message):
         """
         Insert a message into the chat.
-        :param chat_id: Chat of ID 
+        :param chat_id: Chat of ID
         :param sender_id: ID of user that sends message
         :param message: Message content (encrypted)
         :return: Returns nothing
@@ -165,7 +165,7 @@ class DB:
         """
         Inserts a contact into the database.
         :param owner_id: ID of user
-        :param user_id: ID of contact. 
+        :param user_id: ID of contact.
         :param encrypted_alias: Encrypted alias of contact
         :return: 0 if the user was successfully inserted, else 1
         """
