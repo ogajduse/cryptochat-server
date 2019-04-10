@@ -20,9 +20,10 @@ from db import DB, DatabaseError
 from logging_utils import get_logger, init_logging
 from messages import MessagesNewAPI
 from messages import MessagesUpdatesAPI
-from users import UsersNewAPI
-from chats import ChatsNewAPI
-from contacts import ContactsNewAPI
+from users import UsersAPI
+from chats import ChatsAPI
+from contacts import ContactsAPI
+
 
 LOGGER = get_logger(__name__)
 SERVER_VERSION = os.getenv('VERSION', 'unknown')
@@ -66,9 +67,10 @@ class BaseHandler(tornado.web.RequestHandler):
 
     messages_new_api = None
     messages_updates_api = None
-    users_new_api = None
-    chats_new_api = None
+    users_api = None
+    chats_api = None
     contacts_new_api = None
+
 
     def data_received(self, chunk):
         pass
@@ -138,9 +140,11 @@ class BaseHandler(tornado.web.RequestHandler):
         self.set_status(code)
         self.write(res)
 
-    def handle_get(self, api_endpoint, api_version, param_name, param):
+    async def handle_get(self, api_endpoint, api_version):
         """Takes care of validation of input and execution of GET methods."""
-        result = api_endpoint.process_get(api_version, {param_name: [param]})
+        data = self.get_post_data()
+        result = await api_endpoint.process_get(api_version, data)
+
         code = 200
 
         self.set_status(code)
@@ -210,18 +214,28 @@ class UsersHandler(BaseHandler):
 
     async def post(self):
         """Adds a new user to the database."""
-        await self.handle_post(self.users_new_api, 1)
+        await self.handle_post(self.users_api, 1)
+
+    async def get(self):
+        """Returns details of particular user."""
+        await self.handle_get(self.users_api, 1)
 
 
-class ChatsNewHandler(BaseHandler):
+class ChatsHandler(BaseHandler):
     """Handler providing /chats POST requests"""
+
     async def post(self):
         """Adds a new chat to the database."""
-        await self.handle_post(self.chats_new_api, 1)
+        await self.handle_post(self.chats_api, 1)
+
+    async def get(self):
+        """Returns details of particular chat."""
+        await self.handle_get(self.chats_api, 1)
 
 
 class ContactsNewHandler(BaseHandler):
     """Handler providing /contacts POST requests"""
+
     async def post(self):
         """Adds a new contact to the database"""
         await self.handle_post(self.contacts_new_api, 1)
@@ -236,7 +250,7 @@ class Application(tornado.web.Application):
             (r"/api/message/new", MessageNewHandler),
             (r"/api/message/updates", MessageUpdatesHandler),
             (r"/api/users", UsersHandler),
-            (r"/api/chats", ChatsNewHandler),
+            (r"/api/chats", ChatsHandler),
             (r"/api/contacts", ContactsNewHandler),
         ]
 
@@ -274,9 +288,9 @@ def main():
 
     BaseHandler.messages_new_api = MessagesNewAPI(cryptochat_db)
     BaseHandler.messages_updates_api = MessagesUpdatesAPI(cryptochat_db)
-    BaseHandler.users_new_api = UsersNewAPI(cryptochat_db)
-    BaseHandler.chats_new_api = ChatsNewAPI(cryptochat_db)
-    BaseHandler.contacts_new_api = ContactsNewAPI(cryptochat_db)
+    BaseHandler.users_api = UsersAPI(cryptochat_db)
+    BaseHandler.chats_api = ChatsAPI(cryptochat_db)
+    BaseHandler.contacts_new_api = ContactsAPI(cryptochat_db)
 
     tornado.ioloop.IOLoop.current().start()
 
