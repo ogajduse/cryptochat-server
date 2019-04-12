@@ -9,6 +9,7 @@ class ChatsAPI:
     """
     TODO
     """
+
     def __init__(self, my_db):
         self.my_db = my_db
 
@@ -57,11 +58,11 @@ class ChatsAPI:
         :returns: json response with chat info
         """
         json_schema = {
-            "type": "object",
-            "properties": {
-                "chat_id": {"type": "integer"},
+            'type': 'object',
+            'properties': {
+                'chat_id': {'type': 'integer'},
             },
-            "required": ["chat_id"]
+            'required': ['chat_id']
         }
 
         validate(data, json_schema)
@@ -75,9 +76,9 @@ class ChatsAPI:
             raise NotImplementedError
         api_response = api_response[0]
 
-        owner = api_response.get("owner")
-        users = api_response.get("users")
-        users_public_key = api_response.get("users_public_key")
+        owner = api_response.get('owner')
+        users = api_response.get('users')
+        users_public_key = api_response.get('users_public_key')
 
         response = {
             'user_id': chat_id,
