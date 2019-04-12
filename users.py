@@ -29,13 +29,13 @@ class UsersAPI:
 
         public_key = data.get('public_key')
 
+        user_id = None
 
-        await self.my_db.insert_user(user_id, public_key_enc, public_key_sig)
+        await self.my_db.insert_user(public_key)
 
         response = {
             'user_id': user_id,
-            'public_key_enc': public_key_enc,
-            'public_key_sig': public_key_sig
+            'public_key': public_key,
         }
 
         return response
@@ -65,13 +65,11 @@ class UsersAPI:
             raise NotImplementedError
         api_response = api_response[0]
 
-        public_key_enc = api_response.get('public_key_enc')
-        public_key_sig = api_response.get('public_key_sig')
+        public_key = api_response.get('public_key')
 
         response = {
             'user_id': user_id,
-            'public_key_enc': public_key_enc,
-            'public_key_sig': public_key_sig
+            'public_key': public_key
         }
 
         return response
