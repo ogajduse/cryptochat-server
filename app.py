@@ -212,6 +212,9 @@ class UsersHandler(BaseHandler):
         """Adds a new user to the database."""
         await self.handle_post(self.users_new_api, 1)
 
+    async def get(self):
+        """Returns details of particular user."""
+        await self.handle_get(self.users_api, 1)
 
 
 class ChatsHandler(BaseHandler):
