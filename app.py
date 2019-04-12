@@ -220,6 +220,9 @@ class ChatsHandler(BaseHandler):
     async def post(self):
         """Adds a new chat to the database."""
         await self.handle_post(self.chats_new_api, 1)
+    async def get(self):
+        """Returns details of particular chat."""
+        await self.handle_get(self.chats_api, 1)
 
 
 class ContactsNewHandler(BaseHandler):
