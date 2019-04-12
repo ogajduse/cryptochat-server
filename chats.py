@@ -5,7 +5,7 @@ Module to handle /chats API calls.
 from jsonschema import validate
 
 
-class ChatsNewAPI:
+class ChatsAPI:
     """
     TODO
     """

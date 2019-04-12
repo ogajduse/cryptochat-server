@@ -5,8 +5,8 @@ Module to handle /contacts API calls.
 from jsonschema import validate
 
 
-class ContactsNewAPI:
-    """ Main /packages API class."""
+class ContactsAPI:
+    """ Main /contacts API class."""
 
     def __init__(self, my_db):
         self.my_db = my_db
