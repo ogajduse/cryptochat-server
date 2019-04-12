@@ -6,16 +6,14 @@ from jsonschema import validate
 
 
 class ChatsAPI:
-    """
-    TODO
-    """
+    """ Main /chats API class."""
 
     def __init__(self, my_db):
         self.my_db = my_db
 
     async def process_post(self, api_version, data):  # pylint: disable=unused-argument
         """
-        Returns package details.
+        Process inserting new chat to the database.
         :param data: json request parsed into data structure
         :returns: json response with inserted chat
         """
@@ -53,7 +51,7 @@ class ChatsAPI:
 
     async def process_get(self, api_version, data):  # pylint: disable=unused-argument
         """
-        Returns user details.
+        Process the data in request and return info about particular chat.
         :param data: json request parsed into data structure
         :returns: json response with chat info
         """

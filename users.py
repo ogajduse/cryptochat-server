@@ -1,19 +1,19 @@
 """
-Module to handle /messages API calls.
+Module to handle /users API calls.
 """
 
 from jsonschema import validate
 
 
 class UsersAPI:
-    """ Main /packages API class."""
+    """ Main /users API class."""
 
     def __init__(self, db):
         self.my_db = db
 
     async def process_post(self, api_version, data):  # pylint: disable=unused-argument
         """
-        Returns package details.
+        Process inserting new user to the database.
         :param data: json request parsed into data structure
         :returns: json response with inserted user
         """
@@ -42,9 +42,9 @@ class UsersAPI:
 
     async def process_get(self, api_version, data):  # pylint: disable=unused-argument
         """
-        Returns package details.
+        Process the data in request and return info about particular user.
         :param data: json request parsed into data structure
-        :returns: json response with inserted message
+        :returns: json response with user info
         """
         json_schema = {
             'type': 'object',

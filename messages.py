@@ -6,7 +6,7 @@ from jsonschema import validate
 
 
 class MessagesNewAPI:
-    """ Main /packages API class."""
+    """ Main /messages/new API class."""
 
     def __init__(self, my_db):
         self.my_db = my_db
@@ -22,7 +22,7 @@ class MessagesNewAPI:
 
     async def process_post(self, api_version, data):  # pylint: disable=unused-argument
         """
-        Returns package details.
+        Process inserting new message to the chat.
         :param data: json request parsed into data structure
         :returns: json response with inserted message
         """
@@ -44,7 +44,7 @@ class MessagesNewAPI:
 
 
 class MessagesUpdatesAPI:
-    """ Main /packages API class."""
+    """ Main /messages/updates API class."""
 
     def __init__(self, my_db):
         self.my_db = my_db
@@ -55,7 +55,7 @@ class MessagesUpdatesAPI:
 
     async def process_post(self, api_version, data):  # pylint: disable=unused-argument
         """
-        Returns package details.
+        Process the request for new messages since the cursor.
         :param data: json request parsed into data structure
         :returns: json response with a list of messages
         """
