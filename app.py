@@ -138,9 +138,11 @@ class BaseHandler(tornado.web.RequestHandler):
         self.set_status(code)
         self.write(res)
 
-    def handle_get(self, api_endpoint, api_version, param_name, param):
+    async def handle_get(self, api_endpoint, api_version):
         """Takes care of validation of input and execution of GET methods."""
-        result = api_endpoint.process_get(api_version, {param_name: [param]})
+        data = self.get_post_data()
+        result = await api_endpoint.process_get(api_version, data)
+
         code = 200
 
         self.set_status(code)
@@ -210,7 +212,7 @@ class UsersHandler(BaseHandler):
 
     async def post(self):
         """Adds a new user to the database."""
-        await self.handle_post(self.users_new_api, 1)
+        await self.handle_post(self.users_api, 1)
 
     async def get(self):
         """Returns details of particular user."""
@@ -222,7 +224,8 @@ class ChatsHandler(BaseHandler):
 
     async def post(self):
         """Adds a new chat to the database."""
-        await self.handle_post(self.chats_new_api, 1)
+        await self.handle_post(self.chats_api, 1)
+
     async def get(self):
         """Returns details of particular chat."""
         await self.handle_get(self.chats_api, 1)
