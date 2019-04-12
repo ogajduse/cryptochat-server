@@ -11,9 +11,13 @@ class MessagesNewAPI:
     def __init__(self, my_db):
         self.my_db = my_db
         self.json_schema = {
-            'chat_id': 'chat_id',
-            'sender_id': 'sender_id',
-            'message': 'message',
+            'type': 'object',
+            'properties': {
+                'chat_id': {'type': 'integer'},
+                'sender_id': {'type': 'integer'},
+                'message': {'type': 'string'},
+            },
+            'required': ['chat_id', 'sender_id', 'message']
         }
 
     async def process_post(self, api_version, data):  # pylint: disable=unused-argument

@@ -18,9 +18,13 @@ class ContactsAPI:
         :returns: json response with inserted contact
         """
         json_schema = {
-            'owner_id': 'owner_id',
-            'user_id': 'user_id',
-            'encrypted_alias': 'alias'
+            'type': 'object',
+            'properties': {
+                'owner_id': {'type': 'integer'},
+                'user_id': {'type': 'integer'},
+                'encrypted_alias': {'type': 'string'},
+            },
+            'required': ['owner_id', 'user_id', 'encrypted_alias']
         }
 
         validate(data, json_schema)
