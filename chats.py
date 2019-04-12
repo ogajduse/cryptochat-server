@@ -11,12 +11,6 @@ class ChatsAPI:
     """
     def __init__(self, my_db):
         self.my_db = my_db
-        self.json_schema = {
-            'chat_id': 'chat_id',
-            'owner': 'owner',
-            'users': 'users',
-            'users_public_keys': 'users_public_keys',
-        }
 
     async def process_post(self, api_version, data):  # pylint: disable=unused-argument
         """
@@ -24,7 +18,14 @@ class ChatsAPI:
         :param data: json request parsed into data structure
         :returns: json response with inserted chat
         """
-        validate(data, self.json_schema)
+        json_schema = {
+            'chat_id': 'chat_id',
+            'owner': 'owner',
+            'users': 'users',
+            'users_public_keys': 'users_public_keys',
+        }
+
+        validate(data, json_schema)
 
         chat_id = data.get('chat_id')
         if chat_id is None:

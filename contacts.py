@@ -10,11 +10,6 @@ class ContactsAPI:
 
     def __init__(self, my_db):
         self.my_db = my_db
-        self.json_schema = {
-            'owner_id': 'owner_id',
-            'user_id': 'user_id',
-            'encrypted_alias': 'alias'
-        }
 
     async def process_post(self, api_version, data):  # pylint: disable=unused-argument
         """
@@ -22,7 +17,13 @@ class ContactsAPI:
         :param data: json request parsed into data structure
         :returns: json response with inserted contact
         """
-        validate(data, self.json_schema)
+        json_schema = {
+            'owner_id': 'owner_id',
+            'user_id': 'user_id',
+            'encrypted_alias': 'alias'
+        }
+
+        validate(data, json_schema)
 
         owner_id = data.get('owner_id')
         user_id = data.get('user_id')
