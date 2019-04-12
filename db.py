@@ -68,18 +68,20 @@ class DB:
         self.query = Query()
         LOGGER.info('Using database located at %s', db_string)
 
-    async def insert_user(self, user_id, public_key):
+    async def insert_user(self, user_id, public_key_enc, public_key_sig):
         """
         Insert a new user to database.
-        :param user_id: Users ID
-        :param public_key: Public key of user
+        :param user_id:
+        :param public_key_enc:
+        :param public_key_sig:
         :return: 0 if the user was added, else 1
         """
         async with AIOTinyDB(self.db_string) as my_db:
             if not my_db.contains((where('type') == DBType.USERS.value) & (where('id') == user_id)):
                 my_db.insert({'type': DBType.USERS.value,
                               'id': user_id,
-                              'public_key': public_key})
+                              'public_key_enc': public_key_enc,
+                              'public_key_sig': public_key_sig})
             else:
                 raise DatabaseError(reason=
                                     'Can not insert user into the database. '
@@ -89,28 +91,26 @@ class DB:
     async def select_user(self, user_id):
         """
         Return the user that was searched.
-        :param user_id: Users ID
+        :param user_id:
         :return: user
         """
         async with AIOTinyDB(self.db_string) as my_db:
             return my_db.search((where('type') == DBType.USERS.value) & (where('id') == user_id))
 
-    async def insert_chat(self, chat_id, users, users_public_keys):
+    async def insert_chat(self, chat_id, owner, users, users_public_keys):
         """
         Inserts the new entry to the particular chat.
-        :param chat_id: ID of Chat
-        :param owner: Owner ID
-        :param users: IDs of users in chat
-        :param users_public_keys: encrypted symetric keys using public keys of user
+        :param chat_id:
+        :param owner:
+        :param users:
+        :param users_public_keys:
         :return: 0 if the chat was inserted into the database, else 1
         """
         async with AIOTinyDB(self.db_string) as my_db:
             if not my_db.contains((where('type') == DBType.CHATS.value) &
                                   ((where('id') == chat_id) | (where('users').all(users)))):
-                my_db.insert({'type': DBType.CHATS.value,
-                              'id': chat_id,
-                              'users': users,
-                              'users_public_key': users_public_keys})
+                my_db.insert({'type': DBType.CHATS.value, 'id': chat_id, 'owner': owner,
+                              'users': users, 'users_public_key': users_public_keys})
                 return
             raise DatabaseError(reason=
                                 'Can not insert chat into the database. '
@@ -119,8 +119,8 @@ class DB:
     async def select_chat(self, chat_id):
         """
         Return the chat ID that was searched for.
-        :param chat_id: ID of chat
-        :return: Chat that was searched for user's id
+        :param chat_id:
+        :return: Chat that was searched for
         """
         async with AIOTinyDB(self.db_string) as my_db:
             return my_db.search((where('type') == DBType.CHATS.value) & (where('id') == chat_id))
@@ -128,8 +128,8 @@ class DB:
     async def select_my_chats(self, my_id):
         """
         Return the chats for the particular user.
-        :param my_id: User ID
-        :return: Chats ID for the particular user
+        :param my_id:
+        :return: Chats for the particular user
         """
         async with AIOTinyDB(self.db_string) as my_db:
             return my_db.search(
@@ -139,10 +139,10 @@ class DB:
     async def insert_message(self, chat_id, sender_id, message):
         """
         Insert a message into the chat.
-        :param chat_id: Chat of ID
-        :param sender_id: ID of user that sends message
-        :param message: Message content (encrypted)
-        :return: Returns nothing
+        :param chat_id:
+        :param sender_id:
+        :param message:
+        :return: TODO
         """
         async with AIOTinyDB(self.db_string) as my_db:
             my_db.insert({'type': DBType.MESSAGES.value,
@@ -154,8 +154,8 @@ class DB:
     async def select_my_messages(self, chat_id):
         """
         TODO
-        :param chat_id: ID of chat
-        :return: Returns json of all messages in chat
+        :param chat_id:
+        :return: TODO
         """
         async with AIOTinyDB(self.db_string) as my_db:
             return my_db.search((where('type') == DBType.MESSAGES.value) &
@@ -164,9 +164,9 @@ class DB:
     async def insert_contact(self, owner_id, user_id, encrypted_alias):
         """
         Inserts a contact into the database.
-        :param owner_id: ID of user
-        :param user_id: ID of contact.
-        :param encrypted_alias: Encrypted alias of contact
+        :param owner_id:
+        :param user_id:
+        :param encrypted_alias:
         :return: 0 if the user was successfully inserted, else 1
         """
         async with AIOTinyDB(self.db_string) as my_db:
@@ -183,8 +183,8 @@ class DB:
     async def select_my_contacts(self, owner_id):
         """
         TODO
-        :param owner_id: User ID which wants his contacts.
-        :return: Returns user's contacts in json.
+        :param owner_id:
+        :return: TODO
         """
         async with AIOTinyDB(self.db_string) as my_db:
             return my_db.search(
@@ -201,10 +201,10 @@ class DB:
     async def alter_my_contact(self, owner_id, user_id, new_alias):
         """
         Alters the contact for the specified user.
-        :param owner_id: User ID which has this contact
-        :param user_id: ID of user which is in contact
-        :param new_alias: New alias for user in contact
-        :return: Nothing
+        :param owner_id:
+        :param user_id:
+        :param new_alias:
+        :return: TODO
         """
         async with AIOTinyDB(self.db_string) as my_db:
             results = my_db.search(
@@ -220,25 +220,111 @@ if __name__ == "__main__":
     DATABASE = DB()
     LOOP = asyncio.new_event_loop()
 
-    LOOP.run_until_complete(DATABASE.insert_user(123, "pkenc"))
+    USER1 = {'user_id': 123, 'pkenc': 'pkenc_data', 'pksig': 'pksig_data'}
+    USER2 = {'user_id': 123456, 'pkenc': 'pkenc_data2', 'pksig': 'pksig_data2'}
+    CONTACT1 = {'owner_id': USER1.get('user_id'),
+                'user_id': USER2.get('user_id'),
+                'encrypted_alias': 'USER2 in contacts of USER1'}
+    CONTACT2 = {'owner_id': USER2.get('user_id'),
+                'user_id': USER1.get('user_id'),
+                'encrypted_alias': 'USER1 in contacts of USER2'}
+    CHAT1 = {'chat_id': 987,
+             'owner': USER1.get('user_id'),
+             'users': [USER1.get('user_id'), USER2.get('user_id')],
+             'users_public_key': [USER1.get('pkenc'), USER2.get('pkenc')]}
+    MESSAGES = [{'chat_id': CHAT1.get('chat_id'),
+                 'sender_id': CHAT1.get('users')[0],
+                 'message': "Hi there!"},
+                {'chat_id': CHAT1.get('chat_id'),
+                 'sender_id': CHAT1.get('users')[1],
+                 'message': 'Oh hi! I have some news for you!'},
+                {'chat_id': CHAT1.get('chat_id'),
+                 'sender_id': CHAT1.get('users')[0],
+                 'message': 'I am curious, tell me...'},
+                {'chat_id': CHAT1.get('chat_id'),
+                 'sender_id': CHAT1.get('users')[1],
+                 'message': 'We are not real... :-('}
+                ]
+
+    LOOP.run_until_complete(DATABASE.insert_user(USER1.get('user_id'),
+                                                 USER1.get('pkenc'), USER1.get('pksig')))
     try:
-        LOOP.run_until_complete(DATABASE.insert_user(123, "pkenc"))
+        LOOP.run_until_complete(DATABASE.insert_user(USER1.get('user_id'),
+                                                     USER1.get('pkenc'), USER1.get('pksig')))
     except DatabaseError:
         print('Duplicate user won\'t be added.')
 
-    LOOP.run_until_complete(DATABASE.insert_user(1234567, 1234567))
+    LOOP.run_until_complete(DATABASE.insert_user(USER2.get('user_id'),
+                                                 USER2.get('pkenc'), USER2.get('pksig')))
 
-    LOOP.run_until_complete(DATABASE.insert_contact(123456, 1234567, "Sranda"))
+    GET_USER2 = LOOP.run_until_complete(DATABASE.select_user(USER2.get('user_id')))[0]
+    print(GET_USER2)
+    ASSERTION = GET_USER2.get('id') == USER2.get('user_id') and \
+                GET_USER2.get('public_key_enc') == USER2.get('pkenc') and \
+                GET_USER2.get('public_key_sig') == USER2.get('pksig')
+    assert ASSERTION
+
+    LOOP.run_until_complete(DATABASE.insert_contact(CONTACT1.get('owner_id'),
+                                                    CONTACT1.get('user_id'),
+                                                    CONTACT1.get('encrypted_alias')))
+    LOOP.run_until_complete(DATABASE.insert_contact(CONTACT2.get('owner_id'),
+                                                    CONTACT2.get('user_id'),
+                                                    CONTACT2.get('encrypted_alias')))
     try:
-        LOOP.run_until_complete(DATABASE.insert_contact(123456, 1234567, "Sranda"))
+        LOOP.run_until_complete(DATABASE.insert_contact(CONTACT1.get('owner_id'),
+                                                        CONTACT1.get('user_id'),
+                                                        CONTACT1.get('encrypted_alias')))
     except DatabaseError:
         print('Duplicate contact won\'t be added')
 
-    print(LOOP.run_until_complete(DATABASE.select_my_contacts(123456)))
+    RESULT = LOOP.run_until_complete(DATABASE.select_my_contacts(USER2.get('user_id')))
+    print(RESULT[0])
 
-    ALTERED_FIELD = 'Prdel'
-    LOOP.run_until_complete(DATABASE.alter_my_contact(123456, 1234567, ALTERED_FIELD))
+    ALTERED_FIELD = CONTACT2.get('encrypted_alias') + '_changed'
+    LOOP.run_until_complete(DATABASE.alter_my_contact(CONTACT2.get('owner_id'),
+                                                      CONTACT2.get('user_id'),
+                                                      ALTERED_FIELD))
 
-    RESULT = LOOP.run_until_complete(DATABASE.select_my_contacts(123456))
+    RESULT = LOOP.run_until_complete(DATABASE.select_my_contacts(USER2.get('user_id')))
     assert RESULT[0].pop('alias') == ALTERED_FIELD
+
+    LOOP.run_until_complete(DATABASE.delete_my_contact(CONTACT1.get('owner_id'),
+                                                       CONTACT1.get('user_id')))
+
+    LOOP.run_until_complete(DATABASE.insert_chat(CHAT1.get('chat_id'),
+                                                 CHAT1.get('owner'),
+                                                 CHAT1.get('users'),
+                                                 CHAT1.get('users_public_key')))
+
+    try:
+        LOOP.run_until_complete(DATABASE.insert_chat(CHAT1.get('chat_id'),
+                                                     CHAT1.get('owner'),
+                                                     CHAT1.get('users'),
+                                                     CHAT1.get('users_public_key')))
+    except DatabaseError:
+        print('Duplicate chat won\'t be added')
+
+    GET_CHAT1 = LOOP.run_until_complete(DATABASE.select_chat(CHAT1.get('chat_id')))[0]
+    ASSERTION = GET_CHAT1.get('id') == CHAT1.get('chat_id') and \
+                GET_CHAT1.get('owner') == CHAT1.get('owner') and \
+                GET_CHAT1.get('users') == CHAT1.get('users') and \
+                GET_CHAT1.get('users_public_key') == CHAT1.get('users_public_key')
+    assert ASSERTION
+
+    GET_USER_CHATS = LOOP.run_until_complete(DATABASE.select_my_chats(CHAT1.get('owner')))
+    assert GET_USER_CHATS[0] == GET_CHAT1
+
+    for it_message in MESSAGES:
+        LOOP.run_until_complete(DATABASE.insert_message(it_message.get('chat_id'),
+                                                        it_message.get('sender_id'),
+                                                        it_message.get('message')))
+
+    RESULT = LOOP.run_until_complete(DATABASE.select_my_messages(CHAT1.get('chat_id')))
+    RESULT.sort(key=lambda x: x.get('timestamp'))
+
+    for idx, it_message in enumerate(RESULT):
+        assert it_message.get('chat_id') == MESSAGES[idx].get('chat_id')
+        assert it_message.get('sender_id') == MESSAGES[idx].get('sender_id')
+        assert it_message.get('message') == MESSAGES[idx].get('message')
+
     LOOP.close()
