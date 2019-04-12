@@ -5,7 +5,7 @@ Module to handle /messages API calls.
 from jsonschema import validate
 
 
-class UsersNewAPI:
+class UsersAPI:
     """ Main /packages API class."""
 
     def __init__(self, db):

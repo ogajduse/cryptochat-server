@@ -20,9 +20,9 @@ from db import DB, DatabaseError
 from logging_utils import get_logger, init_logging
 from messages import MessagesNewAPI
 from messages import MessagesUpdatesAPI
-from users import UsersNewAPI
-from chats import ChatsNewAPI
-from contacts import ContactsNewAPI
+from users import UsersAPI
+from chats import ChatsAPI
+from contacts import ContactsAPI
 
 LOGGER = get_logger(__name__)
 SERVER_VERSION = os.getenv('VERSION', 'unknown')
@@ -66,8 +66,8 @@ class BaseHandler(tornado.web.RequestHandler):
 
     messages_new_api = None
     messages_updates_api = None
-    users_new_api = None
-    chats_new_api = None
+    users_api = None
+    chats_api = None
     contacts_new_api = None
 
     def data_received(self, chunk):
@@ -213,8 +213,10 @@ class UsersHandler(BaseHandler):
         await self.handle_post(self.users_new_api, 1)
 
 
-class ChatsNewHandler(BaseHandler):
+
+class ChatsHandler(BaseHandler):
     """Handler providing /chats POST requests"""
+
     async def post(self):
         """Adds a new chat to the database."""
         await self.handle_post(self.chats_new_api, 1)
@@ -222,6 +224,7 @@ class ChatsNewHandler(BaseHandler):
 
 class ContactsNewHandler(BaseHandler):
     """Handler providing /contacts POST requests"""
+
     async def post(self):
         """Adds a new contact to the database"""
         await self.handle_post(self.contacts_new_api, 1)
@@ -236,7 +239,7 @@ class Application(tornado.web.Application):
             (r"/api/message/new", MessageNewHandler),
             (r"/api/message/updates", MessageUpdatesHandler),
             (r"/api/users", UsersHandler),
-            (r"/api/chats", ChatsNewHandler),
+            (r"/api/chats", ChatsHandler),
             (r"/api/contacts", ContactsNewHandler),
         ]
 
@@ -274,9 +277,9 @@ def main():
 
     BaseHandler.messages_new_api = MessagesNewAPI(cryptochat_db)
     BaseHandler.messages_updates_api = MessagesUpdatesAPI(cryptochat_db)
-    BaseHandler.users_new_api = UsersNewAPI(cryptochat_db)
-    BaseHandler.chats_new_api = ChatsNewAPI(cryptochat_db)
-    BaseHandler.contacts_new_api = ContactsNewAPI(cryptochat_db)
+    BaseHandler.users_api = UsersAPI(cryptochat_db)
+    BaseHandler.chats_api = ChatsAPI(cryptochat_db)
+    BaseHandler.contacts_new_api = ContactsAPI(cryptochat_db)
 
     tornado.ioloop.IOLoop.current().start()
 
