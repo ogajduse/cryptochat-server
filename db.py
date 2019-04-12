@@ -133,8 +133,7 @@ class DB:
         """
         async with AIOTinyDB(self.db_string) as my_db:
             return my_db.search(
-                (where('type') == DBType.CHATS.value) & ((where('users').any([my_id])) |
-                                                         (where('owner') == my_id)))
+                (where('type') == DBType.CHATS.value) & ((where('users').any([my_id]))))
 
     async def insert_message(self, chat_id, sender_id, message):
         """
@@ -220,8 +219,8 @@ if __name__ == "__main__":
     DATABASE = DB()
     LOOP = asyncio.new_event_loop()
 
-    USER1 = {'user_id': 123, 'pkenc': 'pkenc_data', 'pksig': 'pksig_data'}
-    USER2 = {'user_id': 123456, 'pkenc': 'pkenc_data2', 'pksig': 'pksig_data2'}
+    USER1 = {'user_id': 123, 'public_key': 'public_key_data'}
+    USER2 = {'user_id': 123456, 'public_key': 'public_key_data2'}
     CONTACT1 = {'owner_id': USER1.get('user_id'),
                 'user_id': USER2.get('user_id'),
                 'encrypted_alias': 'USER2 in contacts of USER1'}
@@ -229,9 +228,8 @@ if __name__ == "__main__":
                 'user_id': USER1.get('user_id'),
                 'encrypted_alias': 'USER1 in contacts of USER2'}
     CHAT1 = {'chat_id': 987,
-             'owner': USER1.get('user_id'),
              'users': [USER1.get('user_id'), USER2.get('user_id')],
-             'users_public_key': [USER1.get('pkenc'), USER2.get('pkenc')]}
+             'users_public_key': [USER1.get('public_key'), USER2.get('public_key')]}
     MESSAGES = [{'chat_id': CHAT1.get('chat_id'),
                  'sender_id': CHAT1.get('users')[0],
                  'message': "Hi there!"},
@@ -247,21 +245,20 @@ if __name__ == "__main__":
                 ]
 
     LOOP.run_until_complete(DATABASE.insert_user(USER1.get('user_id'),
-                                                 USER1.get('pkenc'), USER1.get('pksig')))
+                                                 USER1.get('public_key')))
     try:
         LOOP.run_until_complete(DATABASE.insert_user(USER1.get('user_id'),
-                                                     USER1.get('pkenc'), USER1.get('pksig')))
+                                                     USER1.get('public_key')))
     except DatabaseError:
         print('Duplicate user won\'t be added.')
 
     LOOP.run_until_complete(DATABASE.insert_user(USER2.get('user_id'),
-                                                 USER2.get('pkenc'), USER2.get('pksig')))
+                                                 USER2.get('public_key')))
 
     GET_USER2 = LOOP.run_until_complete(DATABASE.select_user(USER2.get('user_id')))[0]
     print(GET_USER2)
     ASSERTION = GET_USER2.get('id') == USER2.get('user_id') and \
-                GET_USER2.get('public_key_enc') == USER2.get('pkenc') and \
-                GET_USER2.get('public_key_sig') == USER2.get('pksig')
+                GET_USER2.get('public_key') == USER2.get('public_key')
     assert ASSERTION
 
     LOOP.run_until_complete(DATABASE.insert_contact(CONTACT1.get('owner_id'),
@@ -292,13 +289,11 @@ if __name__ == "__main__":
                                                        CONTACT1.get('user_id')))
 
     LOOP.run_until_complete(DATABASE.insert_chat(CHAT1.get('chat_id'),
-                                                 CHAT1.get('owner'),
                                                  CHAT1.get('users'),
                                                  CHAT1.get('users_public_key')))
 
     try:
         LOOP.run_until_complete(DATABASE.insert_chat(CHAT1.get('chat_id'),
-                                                     CHAT1.get('owner'),
                                                      CHAT1.get('users'),
                                                      CHAT1.get('users_public_key')))
     except DatabaseError:
@@ -306,7 +301,6 @@ if __name__ == "__main__":
 
     GET_CHAT1 = LOOP.run_until_complete(DATABASE.select_chat(CHAT1.get('chat_id')))[0]
     ASSERTION = GET_CHAT1.get('id') == CHAT1.get('chat_id') and \
-                GET_CHAT1.get('owner') == CHAT1.get('owner') and \
                 GET_CHAT1.get('users') == CHAT1.get('users') and \
                 GET_CHAT1.get('users_public_key') == CHAT1.get('users_public_key')
     assert ASSERTION
