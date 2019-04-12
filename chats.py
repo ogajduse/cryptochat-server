@@ -19,29 +19,25 @@ class ChatsAPI:
         :returns: json response with inserted chat
         """
         json_schema = {
-            'chat_id': 'chat_id',
-            'owner': 'owner',
-            'users': 'users',
-            'users_public_keys': 'users_public_keys',
+            'type': 'object',
+            'properties': {
+                'owner': {'type': 'integer'},
+                'users': {'type': 'array',
+                          'items': {'type': 'integer'}
+                          },
+                'users_public_key': {'type': 'array',
+                                     'items': {'type': 'string'}
+                                     },
+            },
+            'required': ['owner', 'users', 'users_public_key']
         }
 
         validate(data, json_schema)
 
-        chat_id = data.get('chat_id')
-        if chat_id is None:
-            raise ValueError('"chat_id" attribute is missing')
-
+        chat_id = None
         owner = data.get('owner')
-        if owner is None:
-            raise ValueError('"owner" attribute is missing')
-
         users = data.get('users')
-        if users is None:
-            raise ValueError('"users" attribute is missing')
-
         users_public_key = data.get('users_public_key')
-        if users_public_key is None:
-            raise ValueError('"users_public_key" attribute is missing')
 
         await self.my_db.insert_chat(chat_id, owner, users, users_public_key)
 
