@@ -15,20 +15,19 @@ class UsersAPI:
         """
         Returns package details.
         :param data: json request parsed into data structure
-        :returns: json response with inserted message
+        :returns: json response with inserted user
         """
         json_schema = {
-            "type": "object",
-            "properties": {
-                "public_key": {"type": "string"},
+            'type': 'object',
+            'properties': {
+                'public_key': {'type': 'string'},
             },
-            "required": ["public_key"]
+            'required': ['public_key']
         }
 
         validate(data, json_schema)
 
-        public_key_sig = data.get("public_key_sig")
-
+        public_key = data.get('public_key')
 
 
         await self.my_db.insert_user(user_id, public_key_enc, public_key_sig)
@@ -48,16 +47,16 @@ class UsersAPI:
         :returns: json response with inserted message
         """
         json_schema = {
-            "type": "object",
-            "properties": {
-                "user_id": {"type": "integer"},
+            'type': 'object',
+            'properties': {
+                'user_id': {'type': 'integer'},
             },
-            "required": ["user_id"]
+            'required': ['user_id']
         }
 
         validate(data, json_schema)
 
-        user_id = data.get("user_id")
+        user_id = data.get('user_id')
 
         api_response = await self.my_db.select_user(user_id)
 
@@ -66,8 +65,8 @@ class UsersAPI:
             raise NotImplementedError
         api_response = api_response[0]
 
-        public_key_enc = api_response.get("public_key_enc")
-        public_key_sig = api_response.get("public_key_sig")
+        public_key_enc = api_response.get('public_key_enc')
+        public_key_sig = api_response.get('public_key_sig')
 
         response = {
             'user_id': user_id,
