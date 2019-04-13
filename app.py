@@ -233,6 +233,10 @@ class ContactsNewHandler(BaseHandler):
         """Adds a new contact to the database"""
         await self.handle_request(self.contacts_new_api, 1)
 
+    async def get(self):
+        """Returns details of particular contact."""
+        await self.handle_request(self.contacts_new_api, 1)
+
 
 class Application(tornado.web.Application):
     """ main cryptochat application class """

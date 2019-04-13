@@ -42,3 +42,30 @@ class ContactsAPI:
         }
 
         return response
+
+    async def process_get(self, api_version, data):  # pylint: disable=unused-argument
+        """
+        Process the data in request and return info about particular contact.
+        :param data: json request parsed into data structure
+        :returns: json response with all contacts of the given user
+        """
+        json_schema = {
+            'type': 'object',
+            'properties': {
+                'owner_id': {'type': 'integer'},
+            },
+            'required': ['owner_id']
+        }
+
+        validate(data, json_schema)
+
+        owner_id = data.get('owner_id')
+
+        api_response = await self.my_db.select_my_contacts(owner_id)
+
+        response = {
+            'owner_id': owner_id,
+            'contacts': api_response,
+        }
+
+        return response
