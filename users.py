@@ -20,18 +20,18 @@ class UsersAPI:
         json_schema = {
             'type': 'object',
             'properties': {
+                'user_id': {'type': 'integer'},
                 'public_key': {'type': 'string'},
             },
-            'required': ['public_key']
+            'required': ['user_id', 'public_key']
         }
 
         validate(data, json_schema)
 
         public_key = data.get('public_key')
+        user_id = data.get('user_id')
 
-        user_id = None
-
-        await self.my_db.insert_user(public_key)
+        await self.my_db.insert_user(user_id, public_key)
 
         response = {
             'user_id': user_id,
