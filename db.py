@@ -258,7 +258,7 @@ if __name__ == "__main__":
     LOOP.run_until_complete(DATABASE.insert_user(USER2.get('user_id'),
                                                  USER2.get('public_key')))
 
-    GET_USER2 = LOOP.run_until_complete(DATABASE.select_user(USER2.get('user_id')))[0]
+    GET_USER2 = LOOP.run_until_complete(DATABASE.select_user(USER2.get('user_id')))
     print(GET_USER2)
     ASSERTION = GET_USER2.get('id') == USER2.get('user_id') and \
                 GET_USER2.get('public_key') == USER2.get('public_key')
@@ -308,7 +308,7 @@ if __name__ == "__main__":
                 GET_CHAT1.get('users_public_key') == CHAT1.get('users_public_key')
     assert ASSERTION
 
-    GET_USER_CHATS = LOOP.run_until_complete(DATABASE.select_my_chats(CHAT1.get('owner')))
+    GET_USER_CHATS = LOOP.run_until_complete(DATABASE.select_my_chats(USER1.get('user_id')))
     assert GET_USER_CHATS[0] == GET_CHAT1
 
     for it_message in MESSAGES:
