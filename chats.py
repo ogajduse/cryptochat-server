@@ -76,3 +76,37 @@ class ChatsAPI:
         }
 
         return response
+
+
+class ChatsUserAPI:
+    """ Main /chats/user API class."""
+
+    def __init__(self, my_db):
+        self.my_db = my_db
+
+    async def process_get(self, api_version, data):  # pylint: disable=unused-argument
+        """
+        Process the data in request and return info about particular chat.
+        :param data: json request parsed into data structure
+        :returns: json response with chat info
+        """
+        json_schema = {
+            'type': 'object',
+            'properties': {
+                'user_id': {'type': 'integer'},
+            },
+            'required': ['user_id']
+        }
+
+        validate(data, json_schema)
+
+        user_id = data.get('user_id')
+
+        db_response = await self.my_db.select_my_chats(user_id)
+
+        response = {
+            'user_id': user_id,
+            'contacts': db_response,
+        }
+
+        return response
