@@ -99,6 +99,11 @@ class DB:
         async with AIOTinyDB(self.db_string) as my_db:
             return my_db.get((where('type') == DBType.USERS.value) & (where('id') == user_id))
 
+    async def user_pubkey_exist(self, pubkey):
+        async with AIOTinyDB(self.db_string) as my_db:
+            exist = my_db.contains((where('type') == DBType.USERS.value) & (where('public_key') == pubkey))
+            return exist
+
     async def insert_chat(self, chat_id, users, users_public_keys):
         """
         Inserts the new entry to the particular chat.
