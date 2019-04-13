@@ -103,7 +103,6 @@ class DB:
         """
         Inserts the new entry to the particular chat.
         :param chat_id: ID of Chat
-        :param owner: Owner ID
         :param users: IDs of users in chat
         :param users_public_keys: encrypted symetric keys using public keys of user
         :return: 0 if the chat was inserted into the database, else 1
