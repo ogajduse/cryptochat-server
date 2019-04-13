@@ -182,8 +182,16 @@ class DB:
                     (where('user_id') == user_id))):
                 raise DatabaseError(reason=
                                     'Can not insert contact into the database. User with ID '
-                                    '{} already exist in the cotacts for the user with ID {}.'
+                                    '{} already exist in the contacts for the user with ID {}.'
                                     .format(user_id, owner_id))
+            if not await self.select_user(owner_id):
+                raise DatabaseError(reason=
+                                    'Can not insert contact into the database. User with ID '
+                                    '{} does not exist in the database.'.format(owner_id))
+            if not await self.select_user(user_id):
+                raise DatabaseError(reason=
+                                    'Can not insert contact into the database. User with ID '
+                                    '{} does not exist in the database.'.format(user_id))
             my_db.insert({'type': DBType.CONTACTS.value, 'owner_id': owner_id,
                           'user_id': user_id, 'alias': encrypted_alias})
 
