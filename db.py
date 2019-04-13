@@ -173,7 +173,12 @@ class DB:
         :return: Chat that was searched for user's id
         """
         async with AIOTinyDB(self.db_string) as my_db:
-            return my_db.search((where('type') == DBType.CHATS.value) & (where('id') == chat_id))
+            db_response = my_db.get((where('type') == DBType.CHATS.value) &
+                                    (where('id') == chat_id))
+            if not db_response:
+                raise DatabaseError(reason='Chat with ID {} does not exist in the database.'
+                                    .format(chat_id))
+            return db_response
 
     async def select_my_chats(self, my_id):
         """
