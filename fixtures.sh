@@ -1,8 +1,8 @@
 # insert user1
-curl http://localhost:8888/api/users -X 'POST' -H 'Content-Type: application-json' --data '{"user_id": 123, "public_key_enc":"pkenc_data", "public_key_sig": "pksig_data"}'
+curl http://localhost:8888/api/users -X 'POST' -H 'Content-Type: application-json' --data '{"user_id": 123, "public_key":"public_key_data"}'
 
 # insert user2
-curl http://localhost:8888/api/users -X 'POST' -H 'Content-Type: application-json' --data '{"user_id": 123456, "public_key_enc":"pkenc_data2", "public_key_sig": "pksig_data2"}'
+curl http://localhost:8888/api/users -X 'POST' -H 'Content-Type: application-json' --data '{"user_id": 123, "public_key":"public_key_data2"}'
 
 # insert contact1
 curl http://localhost:8888/api/contacts -X 'POST' -H 'Content-Type: application-json' --data '{"owner_id": 123, "user_id": 123456, "encrypted_alias": "USER2 in contacts of USER1"}'
