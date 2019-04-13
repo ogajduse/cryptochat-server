@@ -98,8 +98,8 @@ class BaseHandler(tornado.web.RequestHandler):
             data = None
         return data
 
-    async def handle_post(self, api_endpoint, api_version):
-        """Takes care of validation of input and execution of POST methods."""
+    async def handle_request(self, api_endpoint, api_version):
+        """Takes care of validation of input and execution of POST and GET methods."""
         code = 400
         data = self.get_post_data()
         if data:
@@ -137,16 +137,6 @@ class BaseHandler(tornado.web.RequestHandler):
         # raise tornado.web.HTTPError(status_code=444, reason='error happened')
         self.set_status(code)
         self.write(res)
-
-    async def handle_get(self, api_endpoint, api_version):
-        """Takes care of validation of input and execution of GET methods."""
-        data = self.get_post_data()
-        result = await api_endpoint.process_get(api_version, data)
-
-        code = 200
-
-        self.set_status(code)
-        self.write(result)
 
     def write_error(self, status_code, **kwargs):
 
@@ -189,7 +179,7 @@ class MessageNewHandler(BaseHandler):
         """
         Add a new message to the server.
         """
-        await self.handle_post(self.messages_new_api, 1)
+        await self.handle_request(self.messages_new_api, 1)
 
 
 class MessageUpdatesHandler(BaseHandler):
@@ -201,7 +191,7 @@ class MessageUpdatesHandler(BaseHandler):
     async def post(self):
         """Checks for the new message updates, waits until
         new messages are available."""
-        await self.handle_post(self.messages_updates_api, 1)
+        await self.handle_request(self.messages_updates_api, 1)
 
     # def on_connection_close(self):
     #     self.wait_future.cancel()
@@ -212,11 +202,11 @@ class UsersHandler(BaseHandler):
 
     async def post(self):
         """Adds a new user to the database."""
-        await self.handle_post(self.users_api, 1)
+        await self.handle_request(self.users_api, 1)
 
     async def get(self):
         """Returns details of particular user."""
-        await self.handle_get(self.users_api, 1)
+        await self.handle_request(self.users_api, 1)
 
 
 class ChatsHandler(BaseHandler):
@@ -224,11 +214,11 @@ class ChatsHandler(BaseHandler):
 
     async def post(self):
         """Adds a new chat to the database."""
-        await self.handle_post(self.chats_api, 1)
+        await self.handle_request(self.chats_api, 1)
 
     async def get(self):
         """Returns details of particular chat."""
-        await self.handle_get(self.chats_api, 1)
+        await self.handle_request(self.chats_api, 1)
 
 
 class ContactsNewHandler(BaseHandler):
@@ -236,7 +226,7 @@ class ContactsNewHandler(BaseHandler):
 
     async def post(self):
         """Adds a new contact to the database"""
-        await self.handle_post(self.contacts_new_api, 1)
+        await self.handle_request(self.contacts_new_api, 1)
 
 
 class Application(tornado.web.Application):
