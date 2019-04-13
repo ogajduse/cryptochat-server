@@ -111,6 +111,18 @@ class DB:
             return exist
 
     async def insert_chat(self, chat_id, users, users_public_keys):
+    async def select_all_user_ids(self):
+        """
+        Get all user ids and return them.
+        :return: array: all user IDs stored in the database in
+        """
+        async with AIOTinyDB(self.db_string) as my_db:
+            all_users = my_db.search(where('type') == DBType.USERS.value)
+            user_ids = []
+            for user in all_users:
+                user_ids.append(user['id'])
+            return user_ids
+
         """
         Inserts the new entry to the particular chat.
         :param chat_id: ID of Chat
@@ -148,6 +160,13 @@ class DB:
         async with AIOTinyDB(self.db_string) as my_db:
             return my_db.search(
                 (where('type') == DBType.CHATS.value) & ((where('users').any([my_id]))))
+
+    async def get_last_chat(self):
+        """
+        Get the last ID of chat in the database.
+        :return: ID of the last inserted chat
+        """
+        return await self.__get_last_entity_id(DBType.CHATS, 'id')
 
     async def insert_message(self, chat_id, sender_id, message):
         """
@@ -235,6 +254,14 @@ class DB:
             for result in results:
                 result['alias'] = new_alias
             my_db.write_back(results)
+
+    async def __get_last_entity_id(self, entity, entity_id_name):
+        async with AIOTinyDB(self.db_string) as my_db:
+            db_search = my_db.search(where('type') == entity.value)
+            if not db_search:
+                return 0
+            sorted_entities = sorted(db_search, key=lambda entity_id: entity_id[entity_id_name])
+            return sorted_entities[-1].get(entity_id_name)
 
 
 if __name__ == "__main__":
