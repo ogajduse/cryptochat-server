@@ -8,6 +8,7 @@ import os
 import time
 from enum import Enum
 
+import numpy
 import rsa
 from aiotinydb import AIOTinyDB
 from tinydb import Query, where
@@ -110,7 +111,6 @@ class DB:
                                    (where('public_key') == pubkey))
             return exist
 
-    async def insert_chat(self, chat_id, users, users_public_keys):
     async def select_all_user_ids(self):
         """
         Get all user ids and return them.
@@ -123,24 +123,48 @@ class DB:
                 user_ids.append(user['id'])
             return user_ids
 
+    async def insert_chat(self, users, sym_key_enc_by_owners_pub_keys):
         """
         Inserts the new entry to the particular chat.
-        :param chat_id: ID of Chat
         :param users: IDs of users in chat
-        :param users_public_keys: encrypted symetric keys using public keys of user
+        :param sym_key_enc_by_owners_pub_keys: encrypted symmetric keys using public keys of user
         :return: 0 if the chat was inserted into the database, else 1
         """
         async with AIOTinyDB(self.db_string) as my_db:
-            if not my_db.contains((where('type') == DBType.CHATS.value) &
-                                  ((where('id') == chat_id) | (where('users').all(users)))):
-                my_db.insert({'type': DBType.CHATS.value,
-                              'id': chat_id,
-                              'users': users,
-                              'users_public_key': users_public_keys})
-                return
-            raise DatabaseError(reason=
-                                'Can not insert chat into the database. '
-                                'Chat with ID "{}" already exist.'.format(chat_id))
+            chat_id = await self.get_last_chat() + 1
+            all_user_ids = await self.select_all_user_ids()
+            try:
+                # check that the users are present in the DB
+                assert set(users).issubset(all_user_ids)
+            except AssertionError:
+                # show which users are not in the DB
+                all_user_ids_str = [str(x) for x in all_user_ids]
+                users_str = [str(x) for x in users]
+                users_diff = ','.join(numpy.setdiff1d(users_str, all_user_ids_str))
+                raise DatabaseError(reason=
+                                    'Can not insert chat into the database. '
+                                    'User/users {} not found in the database.'.format(users_diff))
+            # check for the duplicate chats
+            if my_db.contains((where('type') == DBType.CHATS.value) &
+                              (where('users').all(users))):
+                raise DatabaseError(reason=
+                                    'Can not insert chat into the database. '
+                                    'Chat with users "{}" already exist.'
+                                    .format(','.join(str(x) for x in users)))
+
+            try:
+                # check if we have the same count for users as for symmetric keys
+                assert len(users) == len(sym_key_enc_by_owners_pub_keys)
+            except AssertionError:
+                raise DatabaseError(reason=
+                                    'Can not insert chat into the database. '
+                                    'Number of users should be the same as number of '
+                                    'symmetric keys.')
+
+            my_db.insert({'type': DBType.CHATS.value,
+                          'id': chat_id,
+                          'users': users,
+                          'sym_key_enc_by_owners_pub_keys': sym_key_enc_by_owners_pub_keys})
 
     async def select_chat(self, chat_id):
         """
