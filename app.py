@@ -115,9 +115,11 @@ class BaseHandler(tornado.web.RequestHandler):
                 else:
                     res = '%s' % validerr.message
                 LOGGER.error('ValidationError: %s', res)
+                raise tornado.web.HTTPError(reason=res)
             except ValueError as valuerr:
                 res = str(valuerr)
                 LOGGER.error('ValueError: %s', res)
+                raise tornado.web.HTTPError(reason=res)
             except DatabaseError as dberr:
                 err_id = dberr.__hash__()
                 res = str(dberr.reason)
@@ -131,9 +133,11 @@ class BaseHandler(tornado.web.RequestHandler):
                 code = 500
                 LOGGER.exception(res)
                 LOGGER.info("Input data for <%s>: %s", err_id, data)
+                raise tornado.web.HTTPError(reason=res)
         else:
             res = 'Error: malformed input JSON.'
             LOGGER.error(res)
+            raise tornado.web.HTTPError(reason=res)
 
         # raise tornado.web.HTTPError(status_code=444, reason='error happened')
         self.set_status(code)
