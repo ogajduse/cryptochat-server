@@ -102,9 +102,11 @@ class BaseHandler(tornado.web.RequestHandler):
         """Takes care of validation of input and execution of POST and GET methods."""
         code = 400
         data = self.get_post_data()
+        request_method = self.request.method.lower()
         if data:
             try:
-                res = await api_endpoint.process_post(api_version, data)
+                # will call process_get or process_post methods for the given API
+                res = await getattr(api_endpoint, 'process_' + request_method)(api_version, data)
                 code = 200
             except ValidationError as validerr:
                 if validerr.absolute_path:
@@ -119,7 +121,6 @@ class BaseHandler(tornado.web.RequestHandler):
             except DatabaseError as dberr:
                 err_id = dberr.__hash__()
                 res = str(dberr.reason)
-                print(res)
                 LOGGER.error(res)
                 LOGGER.info("Input data for <%s>: %s", err_id, data)
                 raise dberr
