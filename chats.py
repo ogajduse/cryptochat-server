@@ -20,31 +20,28 @@ class ChatsAPI:
         json_schema = {
             'type': 'object',
             'properties': {
-                'owner': {'type': 'integer'},
                 'users': {'type': 'array',
                           'items': {'type': 'integer'}
                           },
-                'users_public_key': {'type': 'array',
-                                     'items': {'type': 'string'}
-                                     },
+                'sym_key_enc_by_owners_pub_keys': {'type': 'array',
+                                                   'items': {'type': 'string'}
+                                                   },
             },
-            'required': ['owner', 'users', 'users_public_key']
+            'required': ['users', 'sym_key_enc_by_owners_pub_keys']
         }
 
         validate(data, json_schema)
 
-        chat_id = None
-        owner = data.get('owner')
         users = data.get('users')
-        users_public_key = data.get('users_public_key')
+        sym_key_enc_by_owners_pub_keys = data.get('sym_key_enc_by_owners_pub_keys')
 
-        await self.my_db.insert_chat(chat_id, owner, users, users_public_key)
+        await self.my_db.insert_chat(users, sym_key_enc_by_owners_pub_keys)
+        chat_id = await self.my_db.get_last_chat()
 
         response = {
             'chat_id': chat_id,
-            'owners': owner,
             'users': users,
-            'users_public_keys': users_public_key,
+            'sym_key_enc_by_owners_pub_keys': sym_key_enc_by_owners_pub_keys,
         }
 
         return response
@@ -67,22 +64,15 @@ class ChatsAPI:
 
         chat_id = data.get('chat_id')
 
-        api_response = await self.my_db.select_chat(chat_id)
+        db_response = await self.my_db.select_chat(chat_id)
 
-        assert isinstance(api_response, list)
-        if len(api_response) > 1:
-            raise NotImplementedError
-        api_response = api_response[0]
-
-        owner = api_response.get('owner')
-        users = api_response.get('users')
-        users_public_key = api_response.get('users_public_key')
+        users = db_response.get('users')
+        sym_key_enc_by_owners_pub_keys = db_response.get('sym_key_enc_by_owners_pub_keys')
 
         response = {
-            'user_id': chat_id,
-            'owner': owner,
+            'chat_id': chat_id,
             'users': users,
-            'users_public_key': users_public_key,
+            'sym_key_enc_by_owners_pub_keys': sym_key_enc_by_owners_pub_keys,
         }
 
         return response
