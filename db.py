@@ -83,7 +83,8 @@ class DB:
 
             if await self.user_pubkey_exist(public_key):
                 raise DatabaseError(reason='Can not insert user into the database. '
-                                           'User with public key "{}" already exist.'.format(public_key))
+                                           'User with public key "{}" already exist.'
+                                    .format(public_key))
             my_db.insert({'type': DBType.USERS.value,
                           'id': user_id,
                           'public_key': public_key})
@@ -100,8 +101,13 @@ class DB:
             return my_db.get((where('type') == DBType.USERS.value) & (where('id') == user_id))
 
     async def user_pubkey_exist(self, pubkey):
+        """Check if the given pubkey exist in the database.
+        :param pubkey: Public key of the user
+        :return: True if the public key is found in the database, false otherwise
+        """
         async with AIOTinyDB(self.db_string) as my_db:
-            exist = my_db.contains((where('type') == DBType.USERS.value) & (where('public_key') == pubkey))
+            exist = my_db.contains((where('type') == DBType.USERS.value) &
+                                   (where('public_key') == pubkey))
             return exist
 
     async def insert_chat(self, chat_id, users, users_public_keys):
