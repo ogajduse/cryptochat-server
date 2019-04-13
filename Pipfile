@@ -11,4 +11,4 @@ rsa = "*"
 aiotinydb = "*"
 tornado = "*"
 jsonschema = "*"
-
+numpy = "*"
