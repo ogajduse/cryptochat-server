@@ -76,14 +76,18 @@ class DB:
         :return: 0 if the user was added, else 1
         """
         async with AIOTinyDB(self.db_string) as my_db:
-            if not my_db.contains((where('type') == DBType.USERS.value) & (where('id') == user_id)):
-                my_db.insert({'type': DBType.USERS.value,
-                              'id': user_id,
-                              'public_key': public_key})
-            else:
+            if my_db.contains((where('type') == DBType.USERS.value) & (where('id') == user_id)):
                 raise DatabaseError(reason=
                                     'Can not insert user into the database. '
                                     'User with ID "{}" already exist.'.format(user_id))
+
+            if await self.user_pubkey_exist(public_key):
+                raise DatabaseError(reason='Can not insert user into the database. '
+                                           'User with public key "{}" already exist.'.format(public_key))
+            my_db.insert({'type': DBType.USERS.value,
+                          'id': user_id,
+                          'public_key': public_key})
+
             return
 
     async def select_user(self, user_id):
