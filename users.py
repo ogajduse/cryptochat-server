@@ -60,11 +60,6 @@ class UsersAPI:
 
         api_response = await self.my_db.select_user(user_id)
 
-        assert isinstance(api_response, list)
-        if len(api_response) > 1:
-            raise NotImplementedError
-        api_response = api_response[0]
-
         public_key = api_response.get('public_key')
 
         response = {
