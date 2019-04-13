@@ -97,7 +97,7 @@ class DB:
         :return: user
         """
         async with AIOTinyDB(self.db_string) as my_db:
-            return my_db.search((where('type') == DBType.USERS.value) & (where('id') == user_id))
+            return my_db.get((where('type') == DBType.USERS.value) & (where('id') == user_id))
 
     async def insert_chat(self, chat_id, users, users_public_keys):
         """
