@@ -197,6 +197,13 @@ class DB:
         """
         return await self.__get_last_entity_id(DBType.CHATS, 'id')
 
+    async def chat_id_exist(self, chat_id):
+        """
+        :return: true if the chat exist, false otherwise
+        """
+        async with AIOTinyDB(self.db_string) as my_db:
+            return my_db.contains((where('type') == DBType.CHATS.value) &
+                                  (where('id') == chat_id))
     async def insert_message(self, chat_id, sender_id, message):
         """
         Insert a message into the chat.
