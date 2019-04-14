@@ -201,11 +201,13 @@ class DB:
 
     async def chat_id_exist(self, chat_id):
         """
+        Check whether the chat exist.
         :return: true if the chat exist, false otherwise
         """
         async with AIOTinyDB(self.db_string) as my_db:
             return my_db.contains((where('type') == DBType.CHATS.value) &
                                   (where('id') == chat_id))
+
     async def insert_message(self, chat_id, sender_id, message):
         """
         Insert a message into the chat.
@@ -274,7 +276,7 @@ class DB:
                                 & (where('owner_id') == owner_id))
 
     async def delete_my_contact(self, owner_id, user_id):
-        "Delete contact of the selected user."
+        """Delete contact of the selected user."""
         async with AIOTinyDB(self.db_string) as my_db:
             return my_db.remove(
                 (where('type') == DBType.CONTACTS.value) & (where('owner_id') == owner_id) &
