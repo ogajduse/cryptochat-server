@@ -320,9 +320,9 @@ if __name__ == "__main__":
     CONTACT2 = {'owner_id': USER2.get('user_id'),
                 'user_id': USER1.get('user_id'),
                 'encrypted_alias': 'USER1 in contacts of USER2'}
-    CHAT1 = {'chat_id': 987,
-             'users': [USER1.get('user_id'), USER2.get('user_id')],
-             'users_public_key': [USER1.get('public_key'), USER2.get('public_key')]}
+    CHAT1 = {'users': [USER1.get('user_id'), USER2.get('user_id')],
+             'sym_key_enc_by_owners_pub_keys': [USER1.get('public_key_encrypted'),
+                                                USER2.get('public_key_encrypted')]}
     MESSAGES = [{'chat_id': CHAT1.get('chat_id'),
                  'sender_id': CHAT1.get('users')[0],
                  'message': "Hi there!"},
@@ -381,25 +381,24 @@ if __name__ == "__main__":
     LOOP.run_until_complete(DATABASE.delete_my_contact(CONTACT1.get('owner_id'),
                                                        CONTACT1.get('user_id')))
 
-    LOOP.run_until_complete(DATABASE.insert_chat(CHAT1.get('chat_id'),
-                                                 CHAT1.get('users'),
-                                                 CHAT1.get('users_public_key')))
+    LOOP.run_until_complete(DATABASE.insert_chat(CHAT1.get('users'),
+                                                 CHAT1.get('sym_key_enc_by_owners_pub_keys')))
 
     try:
-        LOOP.run_until_complete(DATABASE.insert_chat(CHAT1.get('chat_id'),
-                                                     CHAT1.get('users'),
-                                                     CHAT1.get('users_public_key')))
+        LOOP.run_until_complete(DATABASE.insert_chat(CHAT1.get('users'),
+                                                     CHAT1.get('sym_key_enc_by_owners_pub_keys')))
     except DatabaseError:
         print('Duplicate chat won\'t be added')
 
-    GET_CHAT1 = LOOP.run_until_complete(DATABASE.select_chat(CHAT1.get('chat_id')))[0]
-    ASSERTION = GET_CHAT1.get('id') == CHAT1.get('chat_id') and \
-                GET_CHAT1.get('users') == CHAT1.get('users') and \
-                GET_CHAT1.get('users_public_key') == CHAT1.get('users_public_key')
-    assert ASSERTION
-
     GET_USER_CHATS = LOOP.run_until_complete(DATABASE.select_my_chats(USER1.get('user_id')))
-    assert GET_USER_CHATS[0] == GET_CHAT1
+    USER_FIRST_CHAT = GET_USER_CHATS[0]
+    GET_CHAT1 = LOOP.run_until_complete(DATABASE.select_chat(USER_FIRST_CHAT.get('id')))
+    ASSERTION = GET_CHAT1.get('id') == USER_FIRST_CHAT.get('id') and \
+                GET_CHAT1.get('users') == USER_FIRST_CHAT.get('users') and \
+                GET_CHAT1.get('sym_key_enc_by_owners_pub_keys') == \
+                USER_FIRST_CHAT.get('sym_key_enc_by_owners_pub_keys')
+    assert ASSERTION
+    assert USER_FIRST_CHAT == GET_CHAT1
 
     for it_message in MESSAGES:
         LOOP.run_until_complete(DATABASE.insert_message(it_message.get('chat_id'),
