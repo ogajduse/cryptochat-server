@@ -269,7 +269,7 @@ class DB:
         :return: Returns user's contacts in json.
         """
         async with AIOTinyDB(self.db_string) as my_db:
-            if not self.select_user():
+            if not self.select_user(owner_id):
                 raise DatabaseError(reason='User with ID {} does not exist in the database.'
                                     .format(owner_id))
             return my_db.search((where('type') == DBType.CONTACTS.value)
