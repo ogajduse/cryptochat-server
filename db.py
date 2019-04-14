@@ -187,6 +187,8 @@ class DB:
         :return: Chats ID for the particular user
         """
         async with AIOTinyDB(self.db_string) as my_db:
+            if not self.chat_id_exist(my_id):
+                raise DatabaseError(reason='User with ID {} not found in the database.')
             return my_db.search(
                 (where('type') == DBType.CHATS.value) & ((where('users').any([my_id]))))
 
@@ -226,6 +228,8 @@ class DB:
         :return: Returns json of all messages in chat
         """
         async with AIOTinyDB(self.db_string) as my_db:
+            if not self.chat_id_exist(chat_id):
+                raise DatabaseError(reason='Chat with ID {} not found in the database.')
             return my_db.search((where('type') == DBType.MESSAGES.value) &
                                 (where('chat_id') == chat_id))
 
@@ -263,9 +267,11 @@ class DB:
         :return: Returns user's contacts in json.
         """
         async with AIOTinyDB(self.db_string) as my_db:
-            return my_db.search(
-                (where('type') == DBType.CONTACTS.value) &
-                (where('owner_id') == owner_id))
+            if not self.select_user():
+                raise DatabaseError(reason='User with ID {} does not exist in the database.'
+                                    .format(owner_id))
+            return my_db.search((where('type') == DBType.CONTACTS.value)
+                                & (where('owner_id') == owner_id))
 
     async def delete_my_contact(self, owner_id, user_id):
         "Delete contact of the selected user."
