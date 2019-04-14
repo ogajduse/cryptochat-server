@@ -49,9 +49,13 @@ class MessagesUpdatesAPI:
     def __init__(self, my_db):
         self.my_db = my_db
         self.json_schema = {
-            "cursor": "uuid"
+            'type': 'object',
+            'properties': {
+                'cursor': {'type': 'number'},
+                'chat_id': {'type': 'integer'}
+            },
+            'required': ['cursor', 'chat_id']
         }
-        self.wait_future = None
 
     async def process_post(self, api_version, data):  # pylint: disable=unused-argument
         """
@@ -61,23 +65,20 @@ class MessagesUpdatesAPI:
         """
         validate(data, self.json_schema)
 
-        cursor = data.get("cursor")
-        if cursor is None:
-            raise ValueError('"cursor" attribute is missing')
+        cursor = data.get('cursor')
+        chat_id = data.get('chat_id')
+        db_response = await self.my_db.select_my_messages(chat_id)
+        db_response.sort(key=lambda x: x.get('timestamp'), reverse=True)
 
-        # messages = self.cache.get_messages_since(cursor)
-        # while not messages:
-        #     # Save the Future returned here so we can cancel it in
-        #     # on_connection_close.
-        #     self.wait_future = self.cache.cond.wait()
-        #     try:
-        #         await self.wait_future
-        #     except asyncio.CancelledError:
-        #         return
-        #     messages = self.cache.get_messages_since(cursor)
+        results = []
+        for msg in db_response:
+            if msg['timestamp'] == cursor:
+                break
+            results.append(msg)
+        results.reverse()
 
         response = {
-            'messages': None
+            'messages': results
         }
 
         return response
