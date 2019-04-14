@@ -187,7 +187,7 @@ class DB:
         :return: Chats ID for the particular user
         """
         async with AIOTinyDB(self.db_string) as my_db:
-            if not self.chat_id_exist(my_id):
+            if not await self.chat_id_exist(my_id):
                 raise DatabaseError(reason='User with ID {} not found in the database.')
             return my_db.search(
                 (where('type') == DBType.CHATS.value) & ((where('users').any([my_id]))))
@@ -217,6 +217,12 @@ class DB:
         :return: Returns nothing
         """
         async with AIOTinyDB(self.db_string) as my_db:
+            if not await self.select_user(sender_id):
+                raise DatabaseError(reason='User with ID {} not found in the database.'
+                                    .format(sender_id))
+            if not await self.chat_id_exist(chat_id):
+                raise DatabaseError(reason='Chat with ID {} not found in the database.'
+                                    .format(chat_id))
             my_db.insert({'type': DBType.MESSAGES.value,
                           'chat_id': chat_id,
                           'sender_id': sender_id,
@@ -230,8 +236,9 @@ class DB:
         :return: Returns json of all messages in chat
         """
         async with AIOTinyDB(self.db_string) as my_db:
-            if not self.chat_id_exist(chat_id):
-                raise DatabaseError(reason='Chat with ID {} not found in the database.')
+            if not await self.chat_id_exist(chat_id):
+                raise DatabaseError(reason='Chat with ID {} not found in the database.'
+                                    .format(chat_id))
             return my_db.search((where('type') == DBType.MESSAGES.value) &
                                 (where('chat_id') == chat_id))
 
@@ -269,7 +276,7 @@ class DB:
         :return: Returns user's contacts in json.
         """
         async with AIOTinyDB(self.db_string) as my_db:
-            if not self.select_user(owner_id):
+            if not await self.select_user(owner_id):
                 raise DatabaseError(reason='User with ID {} does not exist in the database.'
                                     .format(owner_id))
             return my_db.search((where('type') == DBType.CONTACTS.value)
