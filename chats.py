@@ -106,7 +106,7 @@ class ChatsUserAPI:
 
         response = {
             'user_id': user_id,
-            'contacts': db_response,
+            'chats': db_response,
         }
 
         return response
