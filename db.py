@@ -187,8 +187,9 @@ class DB:
         :return: Chats ID for the particular user
         """
         async with AIOTinyDB(self.db_string) as my_db:
-            if not await self.chat_id_exist(my_id):
-                raise DatabaseError(reason='User with ID {} not found in the database.')
+            if not await self.select_user(my_id):
+                raise DatabaseError(reason='User with ID {} not found in the database.'
+                                    .format(my_id))
             return my_db.search(
                 (where('type') == DBType.CHATS.value) & ((where('users').any([my_id]))))
 
