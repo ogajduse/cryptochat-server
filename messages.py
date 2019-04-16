@@ -32,11 +32,12 @@ class MessagesNewAPI:
         chat_id = data.get('chat_id')
         sender_id = data.get('sender_id')
 
-        await self.my_db.insert_message(chat_id, sender_id, message)
+        timestamp = await self.my_db.insert_message(chat_id, sender_id, message)
 
         response = {
             'chat_id': chat_id,
             'sender_id': sender_id,
+            'timestamp': timestamp,
             'message': message
         }
 

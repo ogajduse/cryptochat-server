@@ -224,11 +224,13 @@ class DB:
             if not await self.chat_id_exist(chat_id):
                 raise DatabaseError(reason='Chat with ID {} not found in the database.'
                                     .format(chat_id))
+            timestamp = time.time()
             my_db.insert({'type': DBType.MESSAGES.value,
                           'chat_id': chat_id,
                           'sender_id': sender_id,
-                          'timestamp': time.time(),
+                          'timestamp': timestamp,
                           'message': message})
+            return timestamp
 
     async def select_my_messages(self, chat_id):
         """
