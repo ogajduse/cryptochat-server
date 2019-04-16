@@ -2,10 +2,14 @@
 Module to handle /messages API calls.
 """
 
-from jsonschema import validate
 import hashlib
+
+from jsonschema import validate
+from rsa.key import PublicKey as rsa_public_key
+from rsa.transform import int2bytes
+
 from utils import rsa_decryption
-import json
+
 
 class MessagesNewAPI:
     """ Main /messages/new API class."""
@@ -18,11 +22,10 @@ class MessagesNewAPI:
                 'chat_id': {'type': 'integer'},
                 'sender_id': {'type': 'integer'},
                 'message': {'type': 'string'},
+                'hash': {'type': 'integer'}
             },
-            'required': ['chat_id', 'sender_id', 'message']
+            'required': ['chat_id', 'sender_id', 'message', 'hash']
         }
-
-
 
     async def process_post(self, api_version, data):  # pylint: disable=unused-argument
         """
@@ -37,21 +40,22 @@ class MessagesNewAPI:
         sender_id = data.get('sender_id')
         received_hash_signed = data.get('hash')
 
+        received_hash_signed = int2bytes(received_hash_signed)
+
         response = await self.my_db.select_user(sender_id)
+        user_public_key = response['public_key']
+        user_public_key = rsa_public_key.load_pkcs1(user_public_key)
 
-        response_dumped = json.dumps(response[0])
-        response_json = json.loads(response_dumped)
+        generated_hash = hashlib.sha256((str(chat_id) + str(sender_id) + str(message)).encode()).hexdigest()
 
-        generated_hash = hashlib.sha256((str(chat_id) + str(sender_id) + str(message)).encode()).digest()
-
-        decrypted_hash = rsa_decryption(response_json['public_key'], received_hash_signed)
+        decrypted_hash = rsa_decryption(user_public_key, received_hash_signed)  # falling here
 
         timestamp = await self.my_db.insert_message(chat_id, sender_id, message)
 
         if decrypted_hash == generated_hash:
             await self.my_db.insert_message(chat_id, sender_id, message)
-        #else:
-            #TODO: GET ERROR !!!!!! SEND INFO TO CLIENT WARNING ABOUT BAD SIGN
+        # else:
+        # TODO: GET ERROR !!!!!! SEND INFO TO CLIENT WARNING ABOUT BAD SIGN
 
         response = {
             'chat_id': chat_id,
