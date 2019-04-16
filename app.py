@@ -31,36 +31,6 @@ DATABASE_LOCATION = os.getenv('DATABASE_LOCATION', '/tmp/cryptochat_db.json')
 _SHUTDOWN_TIMEOUT = 3
 
 
-class MessageBuffer():
-    """Deprecated function that servers as a message buffer. It should be replaced by DB module."""
-
-    def __init__(self):
-        # cond is notified whenever the message cache is updated
-        self.cond = tornado.locks.Condition()
-        self.cache = []
-        self.cache_size = 200
-
-    def get_messages_since(self, cursor):
-        """Returns a list of messages newer than the given cursor.
-
-        ``cursor`` should be the ``id`` of the last message received.
-        """
-        results = []
-        for msg in reversed(self.cache):
-            if msg["message_id"] == cursor:
-                break
-            results.append(msg)
-        results.reverse()
-        return results
-
-    def add_message(self, message):
-        """Adds message to the buffer."""
-        self.cache.append(message)
-        if len(self.cache) > self.cache_size:
-            self.cache = self.cache[-self.cache_size:]
-        self.cond.notify_all()
-
-
 class BaseHandler(tornado.web.RequestHandler):
     """Base handler setting CORS headers."""
 
@@ -304,6 +274,4 @@ def main():
 
 
 if __name__ == "__main__":
-    # Making this a non-singleton is left as an exercise for the reader.
-    GLOBAL_MESSAGE_BUFFER = MessageBuffer()
     main()
