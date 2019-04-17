@@ -2,7 +2,14 @@
 Module to handle /messages API calls.
 """
 
+import hashlib
+
 from jsonschema import validate
+from rsa.key import PublicKey as rsa_public_key
+from rsa.transform import int2bytes
+from database_error import DatabaseError
+
+from utils import rsa_verification
 
 
 class MessagesNewAPI:
@@ -16,8 +23,9 @@ class MessagesNewAPI:
                 'chat_id': {'type': 'integer'},
                 'sender_id': {'type': 'integer'},
                 'message': {'type': 'string'},
+                'hash': {'type': 'integer'}
             },
-            'required': ['chat_id', 'sender_id', 'message']
+            'required': ['chat_id', 'sender_id', 'message', 'hash']
         }
 
     async def process_post(self, api_version, data):  # pylint: disable=unused-argument
@@ -31,8 +39,24 @@ class MessagesNewAPI:
         message = data.get('message')
         chat_id = data.get('chat_id')
         sender_id = data.get('sender_id')
+        received_hash_signed = data.get('hash')
+
+        received_hash_signed = int2bytes(received_hash_signed)
+
+        response = await self.my_db.select_user(sender_id)
+        user_public_key = response['public_key']
+        user_public_key = rsa_public_key.load_pkcs1(user_public_key)
+
+        generated_hash = hashlib.sha256((str(chat_id) + str(sender_id) + str(message)).encode()).hexdigest()
+
+        decrypted_hash = rsa_verification(user_public_key, received_hash_signed, generated_hash.encode('utf-8'))
 
         timestamp = await self.my_db.insert_message(chat_id, sender_id, message)
+
+        if decrypted_hash:
+            await self.my_db.insert_message(chat_id, sender_id, message)
+        else:
+            raise DatabaseError(reason='Message sign does not match the expected sign.')
 
         response = {
             'chat_id': chat_id,
