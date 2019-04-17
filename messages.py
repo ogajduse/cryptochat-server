@@ -7,8 +7,9 @@ import hashlib
 from jsonschema import validate
 from rsa.key import PublicKey as rsa_public_key
 from rsa.transform import int2bytes
+from database_error import DatabaseError
 
-from utils import rsa_decryption
+from utils import rsa_verification
 
 
 class MessagesNewAPI:
@@ -48,14 +49,14 @@ class MessagesNewAPI:
 
         generated_hash = hashlib.sha256((str(chat_id) + str(sender_id) + str(message)).encode()).hexdigest()
 
-        decrypted_hash = rsa_decryption(user_public_key, received_hash_signed)  # falling here
+        decrypted_hash = rsa_verification(user_public_key, received_hash_signed, generated_hash.encode('utf-8'))
 
         timestamp = await self.my_db.insert_message(chat_id, sender_id, message)
 
-        if decrypted_hash == generated_hash:
+        if decrypted_hash:
             await self.my_db.insert_message(chat_id, sender_id, message)
-        # else:
-        # TODO: GET ERROR !!!!!! SEND INFO TO CLIENT WARNING ABOUT BAD SIGN
+        else:
+            raise DatabaseError(reason='Message sign does not match the expected sign.')
 
         response = {
             'chat_id': chat_id,
