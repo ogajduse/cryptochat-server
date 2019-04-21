@@ -145,12 +145,14 @@ class DB:
                                     'Can not insert chat into the database. '
                                     'User/users {} not found in the database.'.format(users_diff))
             # check for the duplicate chats
-            if my_db.contains((where('type') == DBType.CHATS.value) &
-                              (where('users').all(users))):
-                raise DatabaseError(reason=
-                                    'Can not insert chat into the database. '
-                                    'Chat with users "{}" already exist.'
-                                    .format(','.join(str(x) for x in users)))
+            chats = my_db.search((where('type') == DBType.CHATS.value))
+            users_sorted = sorted(users)
+            for chat in chats:
+                if sorted(chat['users']) == users_sorted:
+                    raise DatabaseError(reason=
+                                        'Can not insert chat into the database. '
+                                        'Chat with users "{}" already exist.'
+                                        .format(','.join(str(x) for x in users)))
 
             try:
                 # check if we have the same count for users as for symmetric keys
