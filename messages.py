@@ -51,7 +51,9 @@ class MessagesNewAPI:
 
         decrypted_hash = rsa_verification(user_public_key, received_hash_signed, generated_hash.encode('utf-8'))
 
-        timestamp = await self.my_db.insert_message(chat_id, sender_id, message)
+        # FIXME: insert message and retrieve timestamp, do not call insert twice
+        # timestamp = await self.my_db.insert_message(chat_id, sender_id, message)
+        timestamp = None
 
         if decrypted_hash:
             await self.my_db.insert_message(chat_id, sender_id, message)
